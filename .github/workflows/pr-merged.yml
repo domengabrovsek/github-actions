@@ -7,9 +7,6 @@ name: PR Merged Notification
 
 on:
   workflow_call:
-  pull_request:
-    types: [closed]
-    branches: [main, master]
 
 permissions:
   contents: read
