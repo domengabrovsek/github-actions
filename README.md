@@ -30,6 +30,16 @@ jobs:
     uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
 ```
 
+### PR Updated Notification
+
+Sends a notification when changes are pushed to a PR.
+
+```yaml
+jobs:
+  pr-updated:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@master
+```
+
 ### PR Merged Notification
 
 Sends a notification when a PR is merged.
@@ -47,13 +57,17 @@ name: Notifications
 
 on:
   pull_request:
-    types: [opened, closed]
+    types: [opened, closed, synchronize]
     branches: [main, master]
 
 jobs:
   pr-opened:
     if: github.event.action == 'opened'
     uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
+
+  pr-updated:
+    if: github.event.action == 'synchronize'
+    uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@master
 
   pr-merged:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true

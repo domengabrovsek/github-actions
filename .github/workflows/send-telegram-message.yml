@@ -20,14 +20,6 @@ jobs:
     steps:
       - name: Send Telegram notification
         run: |
-          payload=$(cat <<EOF
-          {
-            "message": {
-              "text": "${{ inputs.message }}"
-            }
-          }
-          EOF
-          )
           curl -X POST "${{ secrets.TELEGRAM_API_URL }}" \
             -H "Content-Type: application/json" \
-            -d "$payload"
+            -d "$(jq -n --arg text "${{ inputs.message }}" '{message: {text: $text}}')"
