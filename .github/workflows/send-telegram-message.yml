@@ -13,9 +13,6 @@ on:
         type: string
         description: 'Message text to send'
 
-permissions:
-  contents: read
-
 jobs:
   send-message:
     name: Send Telegram Message

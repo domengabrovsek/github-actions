@@ -10,11 +10,17 @@ on:
     types: [opened, closed]
     branches: [main, master]
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   pr-opened:
     if: github.event.action == 'opened'
     uses: ./.github/workflows/pr-opened.yml
+    secrets: inherit
 
   pr-merged:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     uses: ./.github/workflows/pr-merged.yml
+    secrets: inherit
