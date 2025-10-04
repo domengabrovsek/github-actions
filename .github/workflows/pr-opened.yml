@@ -7,9 +7,6 @@ name: PR Opened Notification
 
 on:
   workflow_call:
-  pull_request:
-    types: [opened]
-    branches: [main, master]
 
 permissions:
   contents: read
