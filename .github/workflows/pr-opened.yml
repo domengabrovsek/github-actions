@@ -1,0 +1,31 @@
+# ==============================================
+# Pull Request Opened Notification
+# ==============================================
+# Reusable workflow for PR opened notifications
+
+name: PR Opened Notification
+
+on:
+  workflow_call:
+  pull_request:
+    types: [opened]
+    branches: [main, master]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  notify-pr-opened:
+    name: Notify PR Opened
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        run: |
+          curl -X POST "${{ secrets.TELEGRAM_API_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "message": {
+                "text": "🚀 New Pull Request Opened\n\n📝 Title: ${{ github.event.pull_request.title }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`\n🔗 Link: ${{ github.event.pull_request.html_url }}\n📊 Repository: ${{ github.repository }}"
+              }
+            }'
