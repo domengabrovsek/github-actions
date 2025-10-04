@@ -1,0 +1,20 @@
+# ==============================================
+# Pull Request Notifications
+# ==============================================
+# Sends Telegram notifications for PR events
+
+name: Notifications
+
+on:
+  pull_request:
+    types: [opened, closed]
+    branches: [main, master]
+
+jobs:
+  pr-opened:
+    if: github.event.action == 'opened'
+    uses: ./.github/workflows/pr-opened.yml
+
+  pr-merged:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    uses: ./.github/workflows/pr-merged.yml

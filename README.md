@@ -2,11 +2,15 @@
 
 Reusable GitHub Actions workflows.
 
-## Send Telegram Message
+## Setup
 
-Sends a message to Telegram.
+Add `TELEGRAM_API_URL` secret to this repository (Settings → Secrets → Actions).
 
-### Usage
+## Workflows
+
+### Send Telegram Message
+
+Sends a custom message to Telegram.
 
 ```yaml
 jobs:
@@ -16,11 +20,27 @@ jobs:
       message: "Your message here"
 ```
 
-### Setup
+### PR Opened Notification
 
-Add `TELEGRAM_API_URL` secret to this repository (Settings → Secrets → Actions).
+Sends a notification when a PR is opened.
 
-### Example: PR Notifications
+```yaml
+jobs:
+  pr-opened:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
+```
+
+### PR Merged Notification
+
+Sends a notification when a PR is merged.
+
+```yaml
+jobs:
+  pr-merged:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@master
+```
+
+## Example: Full PR Notifications
 
 ```yaml
 name: Notifications
@@ -28,17 +48,14 @@ name: Notifications
 on:
   pull_request:
     types: [opened, closed]
+    branches: [main, master]
 
 jobs:
   pr-opened:
     if: github.event.action == 'opened'
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
-    with:
-      message: "🚀 New PR: ${{ github.event.pull_request.title }} by ${{ github.event.pull_request.user.login }}"
+    uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
 
   pr-merged:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
-    with:
-      message: "✅ PR Merged: ${{ github.event.pull_request.title }}"
+    uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@master
 ```
