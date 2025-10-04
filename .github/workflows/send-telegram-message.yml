@@ -19,11 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Telegram notification
+        env:
+          MESSAGE_TEXT: ${{ inputs.message }}
         run: |
+          payload=$(jq -n --arg text "$MESSAGE_TEXT" '{message: {text: $text}}')
           curl -X POST "${{ secrets.TELEGRAM_API_URL }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "message": {
-                "text": "${{ inputs.message }}"
-              }
-            }'
+            -d "$payload"
