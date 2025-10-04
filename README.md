@@ -1,6 +1,6 @@
 # github-actions 🤖
 
-Here are my GitHub Actions that I reuse in other repos to send messages regarding updates to my Telegram bot. 📱
+GitHub Actions that I reuse in other repos to send messages regarding updates to my Telegram bot. 📱
 
 ## Setup 🔧
 
