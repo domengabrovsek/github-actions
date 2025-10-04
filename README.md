@@ -1,14 +1,14 @@
-# github-actions
+# github-actions 🤖
 
-Reusable GitHub Actions workflows.
+Here are my GitHub Actions that I reuse in other repos to send messages regarding updates to my Telegram bot. 📱
 
-## Setup
+## Setup 🔧
 
 Add `TELEGRAM_API_URL` secret to this repository (Settings → Secrets → Actions).
 
-## Workflows
+## Workflows 🚀
 
-### Send Telegram Message
+### Send Telegram Message 💬
 
 Sends a custom message to Telegram.
 
@@ -20,7 +20,7 @@ jobs:
       message: "Your message here"
 ```
 
-### PR Opened Notification
+### PR Opened Notification 🎉
 
 Sends a notification when a PR is opened.
 
@@ -30,7 +30,7 @@ jobs:
     uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
 ```
 
-### PR Updated Notification
+### PR Updated Notification 🔄
 
 Sends a notification when changes are pushed to a PR.
 
@@ -40,7 +40,7 @@ jobs:
     uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@master
 ```
 
-### PR Merged Notification
+### PR Merged Notification ✅
 
 Sends a notification when a PR is merged.
 
@@ -50,7 +50,7 @@ jobs:
     uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@master
 ```
 
-## Example: Full PR Notifications
+## Example: Full PR Notifications 📋
 
 ```yaml
 name: Notifications
