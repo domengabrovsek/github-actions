@@ -11,5 +11,6 @@ on:
 jobs:
   notify:
     uses: ./.github/workflows/send-telegram-message.yml
+    secrets: inherit
     with:
       message: "✅ Pull Request Merged\n\n📝 Title: ${{ github.event.pull_request.title }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`\n🔗 Link: ${{ github.event.pull_request.html_url }}\n📊 Repository: ${{ github.repository }}"
