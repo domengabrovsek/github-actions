@@ -4,7 +4,9 @@ GitHub Actions that I reuse in other repos to send messages regarding updates to
 
 ## Setup 🔧
 
-Add `TELEGRAM_API_URL` secret to this repository (Settings → Secrets → Actions).
+Add these secrets to your repository (Settings → Secrets → Actions):
+- `TELEGRAM_API_URL` - The webhook URL for your Telegram bot API
+- `TELEGRAM_CHAT_ID` - Default Telegram chat ID where messages will be sent
 
 ## Workflows 🚀
 
@@ -18,6 +20,8 @@ jobs:
     uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
     with:
       message: "Your message here"
+      # Optional: Override default chat_id from TELEGRAM_CHAT_ID secret
+      # chat_id: "987654321"
 ```
 
 ### PR Opened Notification 🎉

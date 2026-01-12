@@ -12,6 +12,15 @@ on:
         required: true
         type: string
         description: 'Message text to send'
+      chat_id:
+        required: false
+        type: string
+        description: 'Telegram chat ID (defaults to TELEGRAM_CHAT_ID secret if not provided)'
+    secrets:
+      TELEGRAM_API_URL:
+        required: true
+      TELEGRAM_CHAT_ID:
+        required: true
 
 jobs:
   send-message:
@@ -21,8 +30,25 @@ jobs:
       - name: Send Telegram notification
         env:
           MESSAGE_TEXT: ${{ inputs.message }}
+          CHAT_ID: ${{ inputs.chat_id || secrets.TELEGRAM_CHAT_ID }}
         run: |
-          payload=$(jq -n --arg text "$MESSAGE_TEXT" '{message: {text: $text}}')
-          curl -X POST "${{ secrets.TELEGRAM_API_URL }}" \
+          payload=$(jq -n --arg text "$MESSAGE_TEXT" --arg chat_id "$CHAT_ID" '{chat_id: $chat_id, message: {text: $text}}')
+
+          echo "Sending notification to Telegram..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.TELEGRAM_API_URL }}" \
             -H "Content-Type: application/json" \
-            -d "$payload"
+            -d "$payload")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response status: $http_code"
+          echo "Response body: $body"
+
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ Notification sent successfully!"
+            exit 0
+          else
+            echo "❌ Failed to send notification (HTTP $http_code)"
+            exit 1
+          fi
