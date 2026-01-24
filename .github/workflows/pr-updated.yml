@@ -7,10 +7,20 @@ name: PR Updated Notification
 
 on:
   workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+        description: 'Telegram API webhook URL'
+      chat_id:
+        required: true
+        type: string
+        description: 'Telegram chat ID to send notifications to'
 
 jobs:
   notify:
     uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
-    secrets: inherit
     with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
       message: "🔄 Pull Request Updated\n\n📝 Title: ${{ github.event.pull_request.title }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`\n🔗 Link: ${{ github.event.pull_request.html_url }}\n📊 Repository: ${{ github.repository }}"
