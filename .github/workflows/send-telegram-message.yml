@@ -12,15 +12,14 @@ on:
         required: true
         type: string
         description: 'Message text to send'
-      chat_id:
-        required: false
+      api_url:
+        required: true
         type: string
-        description: 'Telegram chat ID (defaults to TELEGRAM_CHAT_ID secret if not provided)'
-    secrets:
-      TELEGRAM_API_URL:
+        description: 'Telegram API webhook URL'
+      chat_id:
         required: true
-      TELEGRAM_CHAT_ID:
-        required: true
+        type: string
+        description: 'Telegram chat ID to send the message to'
 
 jobs:
   send-message:
@@ -30,12 +29,13 @@ jobs:
       - name: Send Telegram notification
         env:
           MESSAGE_TEXT: ${{ inputs.message }}
-          CHAT_ID: ${{ inputs.chat_id || secrets.TELEGRAM_CHAT_ID }}
+          CHAT_ID: ${{ inputs.chat_id }}
+          API_URL: ${{ inputs.api_url }}
         run: |
           payload=$(jq -n --arg text "$MESSAGE_TEXT" --arg chat_id "$CHAT_ID" '{chat_id: $chat_id, message: {text: $text}}')
 
           echo "Sending notification to Telegram..."
-          response=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.TELEGRAM_API_URL }}" \
+          response=$(curl -s -w "\n%{http_code}" -X POST "$API_URL" \
             -H "Content-Type: application/json" \
             -d "$payload")
 
