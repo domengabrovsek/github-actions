@@ -19,19 +19,19 @@ jobs:
     if: github.event.action == 'opened'
     uses: ./.github/workflows/pr-opened.yml
     with:
-      api_url: ${{ secrets.TELEGRAM_API_URL }}
-      chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
 
   pr-updated:
     if: github.event.action == 'synchronize'
     uses: ./.github/workflows/pr-updated.yml
     with:
-      api_url: ${{ secrets.TELEGRAM_API_URL }}
-      chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
 
   pr-merged:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     uses: ./.github/workflows/pr-merged.yml
     with:
-      api_url: ${{ secrets.TELEGRAM_API_URL }}
-      chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
