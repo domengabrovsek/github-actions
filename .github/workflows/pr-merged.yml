@@ -7,6 +7,11 @@ name: PR Merged Notification
 
 on:
   workflow_call:
+    secrets:
+      TELEGRAM_API_URL:
+        required: true
+      TELEGRAM_CHAT_ID:
+        required: true
 
 jobs:
   notify:
