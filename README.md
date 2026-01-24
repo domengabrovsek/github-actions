@@ -5,11 +5,14 @@ GitHub Actions that I reuse in other repos to send messages regarding updates to
 ## Setup 🔧
 
 **Option 1: Use Repository Variables (Recommended)**
+
 Add these variables to your repository (Settings → Secrets and variables → Actions → Variables):
+
 - `TELEGRAM_API_URL` - The webhook URL for your Telegram bot API (e.g., `https://abc123.execute-api.eu-central-1.amazonaws.com/prod/webhook`)
 - `TELEGRAM_CHAT_ID` - Telegram chat ID where messages will be sent (e.g., `1542727970`)
 
 **Option 2: Hardcode in Workflow**
+
 Directly specify `api_url` and `chat_id` in your workflow file (useful for public repos or different chat IDs per repo).
 
 ## Workflows 🚀
@@ -19,6 +22,7 @@ Directly specify `api_url` and `chat_id` in your workflow file (useful for publi
 Sends a custom message to Telegram.
 
 **Using Repository Variables:**
+
 ```yaml
 jobs:
   notify:
@@ -30,6 +34,7 @@ jobs:
 ```
 
 **Using Hardcoded Values:**
+
 ```yaml
 jobs:
   notify:
@@ -41,6 +46,7 @@ jobs:
 ```
 
 **Using Secrets (for sensitive chat IDs):**
+
 ```yaml
 jobs:
   notify:
@@ -128,6 +134,7 @@ jobs:
 You can send notifications to different Telegram chats for different repositories:
 
 **Repository A (sends to chat 123456789):**
+
 ```yaml
 # Set TELEGRAM_CHAT_ID variable to "123456789" in repo settings
 uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
@@ -137,6 +144,7 @@ with:
 ```
 
 **Repository B (sends to chat 987654321):**
+
 ```yaml
 # Set TELEGRAM_CHAT_ID variable to "987654321" in repo settings
 uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master

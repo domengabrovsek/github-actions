@@ -18,14 +18,20 @@ jobs:
   pr-opened:
     if: github.event.action == 'opened'
     uses: ./.github/workflows/pr-opened.yml
-    secrets: inherit
+    with:
+      api_url: ${{ secrets.TELEGRAM_API_URL }}
+      chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
 
   pr-updated:
     if: github.event.action == 'synchronize'
     uses: ./.github/workflows/pr-updated.yml
-    secrets: inherit
+    with:
+      api_url: ${{ secrets.TELEGRAM_API_URL }}
+      chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
 
   pr-merged:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     uses: ./.github/workflows/pr-merged.yml
-    secrets: inherit
+    with:
+      api_url: ${{ secrets.TELEGRAM_API_URL }}
+      chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
