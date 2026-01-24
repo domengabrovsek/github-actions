@@ -15,6 +15,8 @@ on:
 jobs:
   notify:
     uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
-    secrets: inherit
+    secrets:
+      TELEGRAM_API_URL: ${{ secrets.TELEGRAM_API_URL }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
     with:
       message: "🚀 New Pull Request Opened\n\n📝 Title: ${{ github.event.pull_request.title }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`\n🔗 Link: ${{ github.event.pull_request.html_url }}\n📊 Repository: ${{ github.repository }}"
