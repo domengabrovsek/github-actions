@@ -6,7 +6,6 @@ GitHub Actions that I reuse in other repos to send messages regarding updates to
 
 **Option 1: Use Repository Variables (Recommended)**
 
-
 Add these variables to your repository (Settings → Secrets and variables → Actions → Variables):
 
 - `TELEGRAM_API_URL` - The webhook URL for your Telegram bot API (e.g., `https://abc123.execute-api.eu-central-1.amazonaws.com/prod/webhook`)
