@@ -1,0 +1,109 @@
+# ==============================================
+# Smart Notification Router
+# ==============================================
+# Single reusable workflow that routes all PR events
+# to the correct notification handler.
+#
+# Usage (consumer just needs this in their repo):
+#
+# name: Notifications
+# on:
+#   pull_request:
+#     types: [opened, closed, synchronize, labeled, review_requested]
+#     branches: [main, master]
+#   issue_comment:
+#     types: [created]
+#   pull_request_review:
+#     types: [submitted]
+#   pull_request_review_comment:
+#     types: [created]
+# jobs:
+#   notify:
+#     uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
+#     with:
+#       api_url: ${{ vars.TELEGRAM_API_URL }}
+#       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+
+name: Notification Router
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+        description: 'Telegram API webhook URL'
+      chat_id:
+        required: true
+        type: string
+        description: 'Telegram chat ID to send notifications to'
+
+jobs:
+  # ---- Pull Request Events ----
+
+  pr-opened:
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  pr-updated:
+    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+    uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  pr-merged:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  pr-closed:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+    uses: domengabrovsek/github-actions/.github/workflows/pr-closed.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  pr-labeled:
+    if: github.event_name == 'pull_request' && github.event.action == 'labeled'
+    uses: domengabrovsek/github-actions/.github/workflows/pr-labeled.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  pr-review-requested:
+    if: github.event_name == 'pull_request' && github.event.action == 'review_requested'
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review-requested.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  # ---- Comment Events ----
+
+  pr-commented:
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+    uses: domengabrovsek/github-actions/.github/workflows/pr-commented.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  pr-review-comment:
+    if: github.event_name == 'pull_request_review_comment'
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review-comment.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+
+  # ---- Review Events ----
+
+  pr-review:
+    if: github.event_name == 'pull_request_review'
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}

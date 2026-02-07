@@ -1,0 +1,61 @@
+# ==============================================
+# CI Status Notification
+# ==============================================
+# Reusable workflow for CI/CD workflow run status notifications
+# Note: workflow_run triggers are repo-specific, so consumers
+# must define their own trigger workflow (see README for example)
+
+name: CI Status Notification
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+        description: 'Telegram API webhook URL'
+      chat_id:
+        required: true
+        type: string
+        description: 'Telegram chat ID to send notifications to'
+
+jobs:
+  format-status:
+    runs-on: ubuntu-latest
+    outputs:
+      message: ${{ steps.build-message.outputs.result }}
+    steps:
+      - name: Build CI status message
+        id: build-message
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const run = context.payload.workflow_run;
+
+            const conclusionMap = {
+              success: '✅',
+              failure: '❌',
+              cancelled: '⚠️',
+              timed_out: '⏰',
+              skipped: '⏭️'
+            };
+
+            const emoji = conclusionMap[run.conclusion] || '❓';
+            const conclusion = run.conclusion.charAt(0).toUpperCase() + run.conclusion.slice(1);
+
+            let message = `${emoji} CI: ${run.name} - ${conclusion}\n\n`;
+            message += `🌿 Branch: ${run.head_branch}\n`;
+            message += `👤 Actor: ${run.actor.login}\n`;
+            message += `🔗 Link: ${run.html_url}\n`;
+            message += `📊 Repository: ${context.payload.repository.full_name}`;
+
+            return message;
+
+  notify:
+    needs: format-status
+    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+      message: ${{ needs.format-status.outputs.message }}
