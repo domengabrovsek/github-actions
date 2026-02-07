@@ -1,0 +1,26 @@
+# ==============================================
+# PR Review Requested Notification
+# ==============================================
+# Reusable workflow for review requested notifications
+
+name: PR Review Requested Notification
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+        description: 'Telegram API webhook URL'
+      chat_id:
+        required: true
+        type: string
+        description: 'Telegram chat ID to send notifications to'
+
+jobs:
+  notify:
+    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+      message: "👋 Review Requested\n\n📝 Title: ${{ github.event.pull_request.title }}\n👤 Requester: ${{ github.event.pull_request.user.login }}\n🔎 Reviewer: ${{ github.event.requested_reviewer.login }}\n🔗 Link: ${{ github.event.pull_request.html_url }}\n📊 Repository: ${{ github.repository }}"

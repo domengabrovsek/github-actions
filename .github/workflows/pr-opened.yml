@@ -17,9 +17,6 @@ on:
         type: string
         description: 'Telegram chat ID to send notifications to'
 
-permissions:
-  pull-requests: read
-
 jobs:
   get-commits:
     runs-on: ubuntu-latest

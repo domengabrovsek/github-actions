@@ -1,0 +1,26 @@
+# ==============================================
+# PR Labeled Notification
+# ==============================================
+# Reusable workflow for PR labeled notifications
+
+name: PR Labeled Notification
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+        description: 'Telegram API webhook URL'
+      chat_id:
+        required: true
+        type: string
+        description: 'Telegram chat ID to send notifications to'
+
+jobs:
+  notify:
+    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+      message: "🏷️ PR Labeled\n\n📝 Title: ${{ github.event.pull_request.title }}\n🏷️ Label: ${{ github.event.label.name }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n🔗 Link: ${{ github.event.pull_request.html_url }}\n📊 Repository: ${{ github.repository }}"

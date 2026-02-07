@@ -1,0 +1,57 @@
+# ==============================================
+# PR Review Comment Notification
+# ==============================================
+# Reusable workflow for inline code review comment notifications
+
+name: PR Review Comment Notification
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+        description: 'Telegram API webhook URL'
+      chat_id:
+        required: true
+        type: string
+        description: 'Telegram chat ID to send notifications to'
+
+jobs:
+  format-comment:
+    runs-on: ubuntu-latest
+    outputs:
+      message: ${{ steps.build-message.outputs.result }}
+    steps:
+      - name: Build review comment message
+        id: build-message
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const comment = context.payload.comment;
+            const pr = context.payload.pull_request;
+
+            // Truncate comment body to 300 chars
+            let body = comment.body || '';
+            if (body.length > 300) {
+              body = body.substring(0, 300) + '...';
+            }
+
+            let message = `🔍 New Review Comment\n\n`;
+            message += `📝 PR: ${pr.title}\n`;
+            message += `👤 Author: ${comment.user.login}\n`;
+            message += `📄 File: ${comment.path}\n`;
+            message += `💭 Comment: ${body}\n`;
+            message += `🔗 Link: ${comment.html_url}\n`;
+            message += `📊 Repository: ${context.payload.repository.full_name}`;
+
+            return message;
+
+  notify:
+    needs: format-comment
+    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+      message: ${{ needs.format-comment.outputs.message }}

@@ -2,6 +2,51 @@
 
 GitHub Actions that I reuse in other repos to send messages regarding updates to my Telegram bot. 📱
 
+## Quick Start 🚀
+
+The simplest way to get all PR notifications. Add this workflow to your repo:
+
+```yaml
+name: Notifications
+
+on:
+  pull_request:
+    types: [opened, closed, synchronize, labeled, review_requested]
+    branches: [main, master]
+  issue_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  notify:
+    uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+One job. Two params. You get notifications for all PR lifecycle events:
+
+| Workflow | Event | Emoji |
+|----------|-------|-------|
+| `pr-opened.yml` | PR opened | 🚀 |
+| `pr-updated.yml` | New commits pushed to PR | 🔄 |
+| `pr-merged.yml` | PR merged | ✅ |
+| `pr-closed.yml` | PR closed without merge | ❌ |
+| `pr-commented.yml` | Comment on PR | 💬 |
+| `pr-review-comment.yml` | Inline code review comment | 🔍 |
+| `pr-review.yml` | Review submitted (approved / changes requested) | 👀 |
+| `pr-review-requested.yml` | Review requested | 👋 |
+| `pr-labeled.yml` | Label added to PR | 🏷️ |
+| `ci-status.yml` | CI workflow completed (success / failure) | ✅❌⚠️ |
+
 ## Setup 🔧
 
 **Option 1: Use Repository Variables (Recommended)**
@@ -17,11 +62,26 @@ Directly specify `api_url` and `chat_id` in your workflow file (useful for publi
 
 ## Workflows 🚀
 
-### Send Telegram Message 💬
+### Notification Router (Recommended) 🎯
+
+Routes all PR events to the correct notification handler automatically. See [Quick Start](#quick-start-) above.
+
+```yaml
+jobs:
+  notify:
+    uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+### Individual Workflows
+
+You can also use individual workflows if you only want specific notifications:
+
+#### Send Telegram Message 💬
 
 Sends a custom message to Telegram.
-
-**Using Repository Variables:**
 
 ```yaml
 jobs:
@@ -33,33 +93,9 @@ jobs:
       message: "Your message here"
 ```
 
-**Using Hardcoded Values:**
+#### PR Opened Notification 🎉
 
-```yaml
-jobs:
-  notify:
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
-    with:
-      api_url: "https://your-api.execute-api.region.amazonaws.com/prod/webhook"
-      chat_id: "123456789"
-      message: "Your message here"
-```
-
-**Using Secrets (for sensitive chat IDs):**
-
-```yaml
-jobs:
-  notify:
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
-    with:
-      api_url: ${{ secrets.TELEGRAM_API_URL }}
-      chat_id: ${{ secrets.TELEGRAM_CHAT_ID }}
-      message: "Your message here"
-```
-
-### PR Opened Notification 🎉
-
-Sends a notification when a PR is opened.
+Sends a notification when a PR is opened, including commit details.
 
 ```yaml
 jobs:
@@ -70,9 +106,9 @@ jobs:
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
 ```
 
-### PR Updated Notification 🔄
+#### PR Updated Notification 🔄
 
-Sends a notification when changes are pushed to a PR.
+Sends a notification when changes are pushed to a PR, including new commits.
 
 ```yaml
 jobs:
@@ -83,7 +119,7 @@ jobs:
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
 ```
 
-### PR Merged Notification ✅
+#### PR Merged Notification ✅
 
 Sends a notification when a PR is merged.
 
@@ -96,34 +132,104 @@ jobs:
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
 ```
 
-## Example: Full PR Notifications 📋
+#### PR Closed Notification ❌
+
+Sends a notification when a PR is closed without being merged.
 
 ```yaml
-name: Notifications
+jobs:
+  pr-closed:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-closed.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+#### PR Commented Notification 💬
+
+Sends a notification when a comment is left on a PR.
+
+```yaml
+jobs:
+  pr-commented:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-commented.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+#### PR Review Comment Notification 🔍
+
+Sends a notification when an inline code review comment is left on a PR.
+
+```yaml
+jobs:
+  pr-review-comment:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review-comment.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+#### PR Review Notification 👀
+
+Sends a notification when a PR review is submitted (approved, changes requested, or commented).
+
+```yaml
+jobs:
+  pr-review:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+#### PR Review Requested Notification 👋
+
+Sends a notification when someone is requested to review a PR.
+
+```yaml
+jobs:
+  pr-review-requested:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review-requested.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+#### PR Labeled Notification 🏷️
+
+Sends a notification when a label is added to a PR.
+
+```yaml
+jobs:
+  pr-labeled:
+    uses: domengabrovsek/github-actions/.github/workflows/pr-labeled.yml@master
+    with:
+      api_url: ${{ vars.TELEGRAM_API_URL }}
+      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+```
+
+#### CI Status Notification ⚙️
+
+Sends a notification when a workflow run completes (success, failure, cancelled).
+
+**Note:** `workflow_run` requires specifying which workflows to watch, so this needs its own trigger file:
+
+```yaml
+name: CI Notifications
 
 on:
-  pull_request:
-    types: [opened, closed, synchronize]
-    branches: [main, master]
+  workflow_run:
+    workflows: ["CI", "Tests"]  # Customize: names of workflows to watch
+    types: [completed]
+
+permissions:
+  contents: read
 
 jobs:
-  pr-opened:
-    if: github.event.action == 'opened'
-    uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
-    with:
-      api_url: ${{ vars.TELEGRAM_API_URL }}
-      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
-
-  pr-updated:
-    if: github.event.action == 'synchronize'
-    uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@master
-    with:
-      api_url: ${{ vars.TELEGRAM_API_URL }}
-      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
-
-  pr-merged:
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
-    uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@master
+  ci-status:
+    uses: domengabrovsek/github-actions/.github/workflows/ci-status.yml@master
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -137,7 +243,7 @@ You can send notifications to different Telegram chats for different repositorie
 
 ```yaml
 # Set TELEGRAM_CHAT_ID variable to "123456789" in repo settings
-uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
+uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
 with:
   api_url: ${{ vars.TELEGRAM_API_URL }}
   chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -147,7 +253,7 @@ with:
 
 ```yaml
 # Set TELEGRAM_CHAT_ID variable to "987654321" in repo settings
-uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
+uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
 with:
   api_url: ${{ vars.TELEGRAM_API_URL }}
   chat_id: ${{ vars.TELEGRAM_CHAT_ID }}

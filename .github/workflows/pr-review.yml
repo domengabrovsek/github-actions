@@ -1,0 +1,57 @@
+# ==============================================
+# PR Review Notification
+# ==============================================
+# Reusable workflow for PR review submitted notifications
+
+name: PR Review Notification
+
+on:
+  workflow_call:
+    inputs:
+      api_url:
+        required: true
+        type: string
+        description: 'Telegram API webhook URL'
+      chat_id:
+        required: true
+        type: string
+        description: 'Telegram chat ID to send notifications to'
+
+jobs:
+  format-review:
+    runs-on: ubuntu-latest
+    outputs:
+      message: ${{ steps.build-message.outputs.result }}
+    steps:
+      - name: Build review message
+        id: build-message
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const review = context.payload.review;
+            const pr = context.payload.pull_request;
+
+            const stateMap = {
+              approved: '✅ Approved',
+              changes_requested: '🔴 Changes Requested',
+              commented: '💬 Commented'
+            };
+
+            const stateLabel = stateMap[review.state] || review.state;
+
+            let message = `👀 PR Review: ${stateLabel}\n\n`;
+            message += `📝 Title: ${pr.title}\n`;
+            message += `👤 Reviewer: ${review.user.login}\n`;
+            message += `🔗 Link: ${pr.html_url}\n`;
+            message += `📊 Repository: ${context.payload.repository.full_name}`;
+
+            return message;
+
+  notify:
+    needs: format-review
+    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
+    with:
+      api_url: ${{ inputs.api_url }}
+      chat_id: ${{ inputs.chat_id }}
+      message: ${{ needs.format-review.outputs.message }}
