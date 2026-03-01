@@ -9,7 +9,7 @@
 # name: Notifications
 # on:
 #   pull_request:
-#     types: [opened, closed, synchronize, labeled, review_requested]
+#     types: [opened, closed, synchronize, review_requested]
 #     branches: [main, master]
 #   issue_comment:
 #     types: [created]
@@ -65,13 +65,6 @@ jobs:
   pr-closed:
     if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
     uses: domengabrovsek/github-actions/.github/workflows/pr-closed.yml@master
-    with:
-      api_url: ${{ inputs.api_url }}
-      chat_id: ${{ inputs.chat_id }}
-
-  pr-labeled:
-    if: github.event_name == 'pull_request' && github.event.action == 'labeled'
-    uses: domengabrovsek/github-actions/.github/workflows/pr-labeled.yml@master
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}

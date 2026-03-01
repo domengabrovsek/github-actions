@@ -8,7 +8,7 @@ name: Notifications
 
 on:
   pull_request:
-    types: [opened, closed, synchronize, labeled, review_requested]
+    types: [opened, closed, synchronize, review_requested]
     branches: [main, master]
   issue_comment:
     types: [created]
