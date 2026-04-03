@@ -69,6 +69,6 @@ jobs:
         🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
         📦 Repository: ${{ github.repository }}
 
-        📦 Commits:
+        📋 Commits:
         ${{ needs.get-commits.outputs.commits }}
         🔗 Link: ${{ github.event.pull_request.html_url }}
