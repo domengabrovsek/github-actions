@@ -46,17 +46,14 @@ jobs:
             const newCommits = comparison.commits;
 
             if (newCommits.length === 0) {
-              return 'No new commits in this push';
+              return '  No new commits';
             }
 
-            const commitList = newCommits.map(commit => {
-              const message = commit.commit.message.split('\n')[0]; // First line only
+            return newCommits.map(commit => {
+              const message = commit.commit.message.split('\n')[0];
               const sha = commit.sha.substring(0, 7);
-              return `• ${sha} - ${message}`;
+              return `  ${sha} - ${message}`;
             }).join('\n');
-
-            const count = newCommits.length;
-            return `${count} new commit${count !== 1 ? 's' : ''}:\n${commitList}`;
 
   notify:
     needs: get-commits
@@ -72,7 +69,6 @@ jobs:
         🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
         📦 Repository: ${{ github.repository }}
 
-        📦 Recent Commits:
+        📦 Commits:
         ${{ needs.get-commits.outputs.commits }}
-
         🔗 Link: ${{ github.event.pull_request.html_url }}

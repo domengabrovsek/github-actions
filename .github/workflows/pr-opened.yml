@@ -37,17 +37,14 @@ jobs:
             });
 
             if (commits.length === 0) {
-              return 'No commits in this PR';
+              return '  No commits';
             }
 
-            const commitList = commits.map(commit => {
-              const message = commit.commit.message.split('\n')[0]; // First line only
+            return commits.map(commit => {
+              const message = commit.commit.message.split('\n')[0];
               const sha = commit.sha.substring(0, 7);
-              return `• ${sha} - ${message}`;
+              return `  ${sha} - ${message}`;
             }).join('\n');
-
-            const count = commits.length;
-            return `${count} commit${count !== 1 ? 's' : ''}:\n${commitList}`;
 
   notify:
     needs: get-commits
@@ -65,5 +62,4 @@ jobs:
 
         📦 Commits:
         ${{ needs.get-commits.outputs.commits }}
-
         🔗 Link: ${{ github.event.pull_request.html_url }}
