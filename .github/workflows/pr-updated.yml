@@ -70,7 +70,7 @@ jobs:
         📝 Title: ${{ github.event.pull_request.title }}
         👤 Author: ${{ github.event.pull_request.user.login }}
         🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
-        📊 Repository: ${{ github.repository }}
+        📦 Repository: ${{ github.repository }}
 
         📦 Recent Commits:
         ${{ needs.get-commits.outputs.commits }}
