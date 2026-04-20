@@ -8,7 +8,7 @@
 #
 # name: Notifications
 # on:
-#   pull_request:
+#   pull_request:              # or pull_request_target, if the repo accepts fork PRs
 #     types: [opened, closed, synchronize, review_requested]
 #     branches: [main, master]
 #   issue_comment:
@@ -23,6 +23,11 @@
 #     with:
 #       api_url: ${{ vars.TELEGRAM_API_URL }}
 #       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
+#
+# Fork PRs: use `pull_request_target` so `vars.*` resolves for forks. The
+# router's PR-event gates accept both `pull_request` and `pull_request_target`.
+# Only safe because no job in this chain runs `actions/checkout` or executes
+# any code from the PR head - it only reads event payload metadata.
 
 name: Notification Router
 
@@ -42,35 +47,35 @@ jobs:
   # ---- Pull Request Events ----
 
   pr-opened:
-    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'opened'
     uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
   pr-updated:
-    if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'synchronize'
     uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@master
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
   pr-merged:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'closed' && github.event.pull_request.merged == true
     uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@master
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
   pr-closed:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'closed' && github.event.pull_request.merged == false
     uses: domengabrovsek/github-actions/.github/workflows/pr-closed.yml@master
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
   pr-review-requested:
-    if: github.event_name == 'pull_request' && github.event.action == 'review_requested'
+    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'review_requested'
     uses: domengabrovsek/github-actions/.github/workflows/pr-review-requested.yml@master
     with:
       api_url: ${{ inputs.api_url }}
