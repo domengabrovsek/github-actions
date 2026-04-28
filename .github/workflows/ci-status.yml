@@ -60,7 +60,7 @@ jobs:
             message += `🌿 Branch: ${run.head_branch}\n`;
             message += `⏰ Trigger: ${triggerLabel}\n`;
             message += `👤 Actor: ${run.actor.login}\n`;
-            message += `🔗 Link: ${run.html_url}`;
+            message += `🔗 Workflow: ${run.html_url}`;
 
             return message;
 

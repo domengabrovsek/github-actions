@@ -44,7 +44,7 @@ jobs:
             message += `👤 Author: ${comment.user.login}\n`;
             message += `💭 Comment: ${body}\n`;
             message += `📦 Repository: ${context.payload.repository.html_url}\n`;
-            message += `🔗 Link: ${comment.html_url}`;
+            message += `🔗 Pull request: ${comment.html_url}`;
 
             return message;
 

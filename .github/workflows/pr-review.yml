@@ -44,7 +44,7 @@ jobs:
             message += `📝 Title: ${pr.title}\n`;
             message += `👤 Reviewer: ${review.user.login}\n`;
             message += `📦 Repository: ${context.payload.repository.html_url}\n`;
-            message += `🔗 Link: ${pr.html_url}`;
+            message += `🔗 Pull request: ${pr.html_url}`;
 
             return message;
 
