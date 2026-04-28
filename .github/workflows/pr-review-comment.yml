@@ -43,7 +43,7 @@ jobs:
             message += `👤 Author: ${comment.user.login}\n`;
             message += `📄 File: ${comment.path}\n`;
             message += `💭 Comment: ${body}\n`;
-            message += `📦 Repository: ${context.payload.repository.full_name}\n`;
+            message += `📦 Repository: ${context.payload.repository.html_url}\n`;
             message += `🔗 Link: ${comment.html_url}`;
 
             return message;

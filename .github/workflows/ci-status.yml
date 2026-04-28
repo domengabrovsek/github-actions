@@ -44,11 +44,23 @@ jobs:
             const emoji = conclusionMap[run.conclusion] || '❓';
             const conclusion = run.conclusion.charAt(0).toUpperCase() + run.conclusion.slice(1);
 
+            // Map raw GitHub event_name to a human label so the channel makes
+            // the manual-vs-scheduled distinction obvious at a glance.
+            const triggerMap = {
+              workflow_dispatch: 'Manual',
+              schedule: 'Automatic (scheduled)',
+              push: 'Automatic (push)',
+              pull_request: 'Automatic (pull request)',
+              release: 'Automatic (release)',
+            };
+            const triggerLabel = triggerMap[run.event] || `Automatic (${run.event})`;
+
             let message = `${emoji} CI: ${run.name} - ${conclusion}\n\n`;
+            message += `📦 Repository: ${context.payload.repository.html_url}\n`;
             message += `🌿 Branch: ${run.head_branch}\n`;
+            message += `⏰ Trigger: ${triggerLabel}\n`;
             message += `👤 Actor: ${run.actor.login}\n`;
-            message += `🔗 Link: ${run.html_url}\n`;
-            message += `📊 Repository: ${context.payload.repository.full_name}`;
+            message += `🔗 Link: ${run.html_url}`;
 
             return message;
 

@@ -23,4 +23,4 @@ jobs:
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
-      message: "✅ Pull Request Merged\n\n📝 Title: ${{ github.event.pull_request.title }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`\n📦 Repository: ${{ github.repository }}\n🔗 Link: ${{ github.event.pull_request.html_url }}"
+      message: "✅ Pull Request Merged\n\n📝 Title: ${{ github.event.pull_request.title }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n🌿 Branch: `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`\n📦 Repository: ${{ github.server_url }}/${{ github.repository }}\n🔗 Link: ${{ github.event.pull_request.html_url }}"
