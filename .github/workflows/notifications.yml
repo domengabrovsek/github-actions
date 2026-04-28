@@ -2,12 +2,20 @@
 # Pull Request Notifications
 # ==============================================
 # Sends Telegram notifications for all PR events
-# using the notify.yml smart router
+# using the notify.yml smart router.
+#
+# SAFETY: uses pull_request_target (not pull_request) so vars.* are
+# available for fork PRs. This is only safe because the router chain
+# never runs `actions/checkout` and never executes any code from the
+# PR head - it only reads event payload metadata. Do NOT add
+# `actions/checkout` (or anything that fetches the PR head ref) to
+# this workflow or to notify.yml without re-doing the security
+# review, or this becomes the classic pull_request_target pwn pattern.
 
 name: Notifications
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, closed, synchronize, review_requested]
     branches: [main, master]
   issue_comment:
