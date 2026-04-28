@@ -43,7 +43,7 @@ jobs:
             let message = `👀 PR Review: ${stateLabel}\n\n`;
             message += `📝 Title: ${pr.title}\n`;
             message += `👤 Reviewer: ${review.user.login}\n`;
-            message += `📦 Repository: ${context.payload.repository.full_name}\n`;
+            message += `📦 Repository: ${context.payload.repository.html_url}\n`;
             message += `🔗 Link: ${pr.html_url}`;
 
             return message;
