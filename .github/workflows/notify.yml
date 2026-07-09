@@ -83,15 +83,16 @@ jobs:
 
   # ---- Comment Events ----
 
+  # Skip bot-authored comments (terraform plan, dependabot, github-actions) - notify on humans only
   pr-commented:
-    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.user.type != 'Bot'
     uses: domengabrovsek/github-actions/.github/workflows/pr-commented.yml@master
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
   pr-review-comment:
-    if: github.event_name == 'pull_request_review_comment'
+    if: github.event_name == 'pull_request_review_comment' && github.event.comment.user.type != 'Bot'
     uses: domengabrovsek/github-actions/.github/workflows/pr-review-comment.yml@master
     with:
       api_url: ${{ inputs.api_url }}
@@ -100,7 +101,7 @@ jobs:
   # ---- Review Events ----
 
   pr-review:
-    if: github.event_name == 'pull_request_review'
+    if: github.event_name == 'pull_request_review' && github.event.review.user.type != 'Bot'
     uses: domengabrovsek/github-actions/.github/workflows/pr-review.yml@master
     with:
       api_url: ${{ inputs.api_url }}
