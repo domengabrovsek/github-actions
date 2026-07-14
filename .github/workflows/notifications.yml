@@ -17,7 +17,7 @@ name: Notifications
 on:
   pull_request_target:
     types: [opened, closed, synchronize, review_requested]
-    branches: [main, master]
+    branches: [main]
   issue_comment:
     types: [created]
   pull_request_review:

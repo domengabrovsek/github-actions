@@ -66,7 +66,7 @@ jobs:
 
   notify:
     needs: format-status
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@main
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
