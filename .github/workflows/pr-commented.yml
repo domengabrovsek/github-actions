@@ -40,7 +40,7 @@ jobs:
             }
 
             let message = `💬 New Comment on PR\n\n`;
-            message += `📝 PR: ${issue.title}\n`;
+            message += `📝 Title: ${issue.title}\n`;
             message += `👤 Author: ${comment.user.login}\n`;
             message += `💭 Comment: ${body}\n`;
             message += `📦 Repository: ${context.payload.repository.html_url}\n`;
