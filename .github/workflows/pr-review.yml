@@ -33,14 +33,14 @@ jobs:
             const pr = context.payload.pull_request;
 
             const stateMap = {
-              approved: '✅ Approved',
-              changes_requested: '🔴 Changes Requested',
-              commented: '💬 Commented'
+              approved: { emoji: '✅', label: 'Approved' },
+              changes_requested: { emoji: '🔴', label: 'Changes Requested' },
+              commented: { emoji: '💬', label: 'Commented' }
             };
 
-            const stateLabel = stateMap[review.state] || review.state;
+            const { emoji, label } = stateMap[review.state] || { emoji: '👀', label: review.state };
 
-            let message = `👀 PR Review: ${stateLabel}\n\n`;
+            let message = `${emoji} PR Review: ${label}\n\n`;
             message += `📝 Title: ${pr.title}\n`;
             message += `👤 Reviewer: ${review.user.login}\n`;
             message += `📦 Repository: ${context.payload.repository.html_url}\n`;

@@ -1,0 +1,84 @@
+name: Send Telegram Notification
+description: Sends a formatted plain-text Telegram message with standard CI/CD fields
+
+inputs:
+  title:
+    description: Message title with emoji (e.g. "🚀 Deploy Started")
+    required: true
+  api_url:
+    description: Telegram API URL
+    required: true
+  chat_id:
+    description: Telegram chat ID
+    required: true
+  site_url:
+    description: Site URL (shown if provided)
+    required: false
+    default: ''
+  show_branch:
+    description: Include branch in message
+    required: false
+    default: 'true'
+  show_author:
+    description: Include author in message
+    required: false
+    default: 'true'
+  show_commit:
+    description: Include commit in message
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Send Telegram message
+      shell: bash
+      env:
+        TITLE: ${{ inputs.title }}
+        TELEGRAM_API_URL: ${{ inputs.api_url }}
+        TELEGRAM_CHAT_ID: ${{ inputs.chat_id }}
+        SITE_URL: ${{ inputs.site_url }}
+        SHOW_BRANCH: ${{ inputs.show_branch }}
+        SHOW_AUTHOR: ${{ inputs.show_author }}
+        SHOW_COMMIT: ${{ inputs.show_commit }}
+        REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        BRANCH: ${{ github.ref_name }}
+        AUTHOR: ${{ github.actor }}
+        COMMIT_SHA: ${{ github.sha }}
+        COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        BODY="📦 Repository: ${REPO_URL}"
+
+        if [ "$SHOW_BRANCH" = "true" ]; then
+          BODY=$(printf '%s\n🌿 Branch: %s' "$BODY" "$BRANCH")
+        fi
+
+        if [ "$SHOW_AUTHOR" = "true" ]; then
+          BODY=$(printf '%s\n👤 Author: %s' "$BODY" "$AUTHOR")
+        fi
+
+        if [ "$SHOW_COMMIT" = "true" ]; then
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          SUBJECT=$(printf '%s' "$COMMIT_MESSAGE" | head -n1)
+          if [ -n "$SUBJECT" ]; then
+            BODY=$(printf '%s\n📝 Commit: %s - %s' "$BODY" "$SHORT_SHA" "$SUBJECT")
+          else
+            BODY=$(printf '%s\n📝 Commit: %s' "$BODY" "$SHORT_SHA")
+          fi
+        fi
+
+        if [ -n "$SITE_URL" ]; then
+          BODY=$(printf '%s\n🌐 Site: %s' "$BODY" "$SITE_URL")
+        fi
+
+        BODY=$(printf '%s\n🔗 Workflow: %s' "$BODY" "$WORKFLOW_URL")
+
+        FULL_MESSAGE=$(printf '%s\n\n%s' "$TITLE" "$BODY")
+
+        curl -s -X POST "${TELEGRAM_API_URL}" \
+          -H "Content-Type: application/json" \
+          -d "$(jq -n \
+            --arg chat_id "$TELEGRAM_CHAT_ID" \
+            --arg text "$FULL_MESSAGE" \
+            '{chat_id: $chat_id, message: {text: $text}}')" || true

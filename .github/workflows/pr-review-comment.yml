@@ -39,7 +39,7 @@ jobs:
             }
 
             let message = `🔍 New Review Comment\n\n`;
-            message += `📝 PR: ${pr.title}\n`;
+            message += `📝 Title: ${pr.title}\n`;
             message += `👤 Author: ${comment.user.login}\n`;
             message += `📄 File: ${comment.path}\n`;
             message += `💭 Comment: ${body}\n`;
