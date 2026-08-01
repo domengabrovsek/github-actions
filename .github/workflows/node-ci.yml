@@ -1,0 +1,176 @@
+# ==============================================
+# Node CI
+# ==============================================
+# Reusable workflow for the lint / format / typecheck / test / build skeleton
+# shared across the npm + Biome + Vitest repos. Every check is its own job so
+# branch protection can see them individually, and a final Gate job aggregates
+# them into one stable status.
+#
+# Each check runs only when its *_command input is non-empty, so a repo enables
+# exactly the checks it has scripts for.
+#
+# Usage (consumer):
+#
+# name: Pull Request
+# on:
+#   pull_request:
+#     branches: [main]
+# permissions:
+#   contents: read
+# jobs:
+#   ci:
+#     uses: domengabrovsek/github-actions/.github/workflows/node-ci.yml@main
+#     with:
+#       typecheck_command: npm run typecheck
+#       test_command: npm run test
+#       build_artifact_path: dist
+#
+# Repos whose tests need service containers (e.g. Postgres) keep those tests in
+# their own job - a service map cannot be passed through workflow inputs. Point
+# this workflow's test_command at the unit tests only, or leave it empty.
+
+name: Node CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version-file:
+        required: false
+        type: string
+        default: '.nvmrc'
+        description: 'File that pins the Node version'
+      install-args:
+        required: false
+        type: string
+        default: ''
+        description: 'Extra arguments appended to npm ci (e.g. --ignore-scripts)'
+      runs-on:
+        required: false
+        type: string
+        default: 'ubuntu-latest'
+        description: 'Runner label(s) for the check jobs'
+      lint_command:
+        required: false
+        type: string
+        default: 'npm run lint'
+        description: 'Lint command. Empty string skips the lint job.'
+      format_command:
+        required: false
+        type: string
+        default: ''
+        description: 'Format-check command. Empty string skips the format job.'
+      typecheck_command:
+        required: false
+        type: string
+        default: ''
+        description: 'Typecheck command. Empty string skips the typecheck job.'
+      test_command:
+        required: false
+        type: string
+        default: ''
+        description: 'Test command. Empty string skips the test job.'
+      build_command:
+        required: false
+        type: string
+        default: 'npm run build'
+        description: 'Build command. Empty string skips the build job.'
+      build_artifact_path:
+        required: false
+        type: string
+        default: ''
+        description: 'Path asserted to exist after build (e.g. dist). Empty skips the assertion.'
+
+jobs:
+  lint:
+    name: Lint
+    if: inputs.lint_command != ''
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          cache: npm
+      - run: npm ci ${{ inputs.install-args }}
+      - run: ${{ inputs.lint_command }}
+
+  format:
+    name: Format
+    if: inputs.format_command != ''
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          cache: npm
+      - run: npm ci ${{ inputs.install-args }}
+      - run: ${{ inputs.format_command }}
+
+  typecheck:
+    name: Typecheck
+    if: inputs.typecheck_command != ''
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          cache: npm
+      - run: npm ci ${{ inputs.install-args }}
+      - run: ${{ inputs.typecheck_command }}
+
+  test:
+    name: Test
+    if: inputs.test_command != ''
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          cache: npm
+      - run: npm ci ${{ inputs.install-args }}
+      - run: ${{ inputs.test_command }}
+
+  build:
+    name: Build
+    if: inputs.build_command != ''
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          cache: npm
+      - run: npm ci ${{ inputs.install-args }}
+      - run: ${{ inputs.build_command }}
+      - name: Assert build artifact exists
+        if: inputs.build_artifact_path != ''
+        env:
+          ARTIFACT_PATH: ${{ inputs.build_artifact_path }}
+        run: |
+          if [ ! -e "$ARTIFACT_PATH" ]; then
+            echo "Expected build artifact not found: $ARTIFACT_PATH"
+            exit 1
+          fi
+          echo "Build artifact present: $ARTIFACT_PATH"
+
+  gate:
+    name: Gate
+    needs: [lint, format, typecheck, test, build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              echo "A required check failed"
+              exit 1
+            fi
+          done
+          echo "All checks passed (skipped checks are OK)"

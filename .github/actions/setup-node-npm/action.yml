@@ -1,0 +1,42 @@
+name: Setup Node and npm
+description: Checks out the repo, sets up Node (from .nvmrc by default), and installs dependencies with npm ci (cached)
+
+inputs:
+  node-version-file:
+    description: Path to the file that pins the Node version. Ignored when node-version is set.
+    required: false
+    default: '.nvmrc'
+  node-version:
+    description: Explicit Node version. Overrides node-version-file when provided.
+    required: false
+    default: ''
+  install:
+    description: Run npm ci after setup. Set to 'false' to skip installing dependencies.
+    required: false
+    default: 'true'
+  install-args:
+    description: Extra arguments appended to npm ci (e.g. --ignore-scripts).
+    required: false
+    default: ''
+  fetch-depth:
+    description: Commits to fetch. 0 fetches full history (needed by scans that diff against the base).
+    required: false
+    default: '1'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: ${{ inputs.fetch-depth }}
+
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: ${{ inputs.node-version }}
+        # When node-version is set, blank out node-version-file so setup-node uses the explicit version.
+        node-version-file: ${{ inputs.node-version == '' && inputs.node-version-file || '' }}
+        cache: npm
+
+    - if: inputs.install == 'true'
+      shell: bash
+      run: npm ci ${{ inputs.install-args }}
