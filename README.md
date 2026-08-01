@@ -79,6 +79,8 @@ steps:
 
 Inputs: `node-version-file` (default `.nvmrc`), `node-version` (overrides the file), `install` (default `true`), `install-args`, `fetch-depth` (default `1`).
 
+The baseline install is `npm ci --ignore-scripts --no-audit --no-fund` (supply-chain safety + less CI noise), applied by both the composite and `node-ci.yml`. `install-args` is appended for repo-specific extras.
+
 ### Node CI 🧪
 
 Runs lint / format / typecheck / test / build as separate jobs plus a `Gate` aggregator for branch protection. Each check runs only when you pass its command, so a repo enables exactly what it has scripts for.
