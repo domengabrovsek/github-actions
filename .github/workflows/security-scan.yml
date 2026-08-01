@@ -1,0 +1,64 @@
+# ==============================================
+# Security Scan
+# ==============================================
+# Reusable workflow bundling the two scans that are copy-pasted across repos:
+#   - Gitleaks: secret detection over full history
+#   - Bearer:   SAST, failing on high-severity findings and reporting the rest
+#
+# Usage (consumer):
+#
+# name: Security
+# on:
+#   pull_request:
+#     branches: [main]
+#   push:
+#     branches: [main]
+# permissions:
+#   contents: read
+# jobs:
+#   security:
+#     uses: domengabrovsek/github-actions/.github/workflows/security-scan.yml@main
+
+name: Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      fail_severity:
+        required: false
+        type: string
+        default: 'critical,high'
+        description: 'Bearer severities that fail the build'
+      warn_severity:
+        required: false
+        type: string
+        default: 'medium,low,warning'
+        description: 'Bearer severities reported without failing the build'
+
+jobs:
+  secret-scan:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Full history so gitleaks scans every commit, not just the tip.
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  security-scan:
+    name: Security Scan (bearer)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Bearer (fail on high severity)
+        uses: bearer/bearer-action@v2
+        with:
+          severity: ${{ inputs.fail_severity }}
+      - name: Bearer (report low severity)
+        uses: bearer/bearer-action@v2
+        with:
+          severity: ${{ inputs.warn_severity }}
+          exit-code: 0

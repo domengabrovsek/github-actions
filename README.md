@@ -1,6 +1,9 @@
 # github-actions 🤖
 
-GitHub Actions that I reuse in other repos to send messages regarding updates to my Telegram bot. 📱
+Reusable GitHub Actions shared across my personal repos: Telegram notifications 📱 plus the common CI, build, and deploy steps 🏗️. Update them here once and every repo that references this one picks up the change.
+
+- [CI, Build & Deploy](#ci-build--deploy-)
+- [Notifications](#workflows-)
 
 ## Quick Start 🚀
 
@@ -59,6 +62,98 @@ Add these variables to your repository (Settings → Secrets and variables → A
 **Option 2: Hardcode in Workflow**
 
 Directly specify `api_url` and `chat_id` in your workflow file (useful for public repos or different chat IDs per repo).
+
+## CI, Build & Deploy 🏗️
+
+Reusable CI steps extracted from the repos that share them. Pin with `@main` (or a tag / SHA once you want to freeze a version), and update here to roll changes out everywhere.
+
+### Setup Node + npm (composite action) ⚙️
+
+Checkout + `setup-node` (from `.nvmrc` by default) + `npm ci` with caching, in one step. Use it inside your own jobs when `node-ci.yml` is not a fit.
+
+```yaml
+steps:
+  - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
+  - run: npm run build
+```
+
+Inputs: `node-version-file` (default `.nvmrc`), `node-version` (overrides the file), `install` (default `true`), `install-args`, `fetch-depth` (default `1`).
+
+### Node CI 🧪
+
+Runs lint / format / typecheck / test / build as separate jobs plus a `Gate` aggregator for branch protection. Each check runs only when you pass its command, so a repo enables exactly what it has scripts for.
+
+```yaml
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: domengabrovsek/github-actions/.github/workflows/node-ci.yml@main
+    with:
+      typecheck_command: npm run typecheck
+      test_command: npm run test
+      build_artifact_path: dist
+```
+
+Inputs: `lint_command` (default `npm run lint`), `format_command`, `typecheck_command`, `test_command`, `build_command` (default `npm run build`), `build_artifact_path` (asserted to exist after build), `node-version-file`, `install-args`, `runs-on`. Leave a `*_command` empty to skip that check.
+
+**Service containers:** tests that need Postgres or another service keep their own job in the consuming repo. A `services:` map cannot be passed through workflow inputs. Point `test_command` at unit tests only, or leave it empty.
+
+### Security Scan 🔒
+
+Gitleaks (secret detection over full history) + Bearer (SAST, fails on high severity, reports the rest).
+
+```yaml
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    uses: domengabrovsek/github-actions/.github/workflows/security-scan.yml@main
+```
+
+Inputs: `fail_severity` (default `critical,high`), `warn_severity` (default `medium,low,warning`).
+
+### Cloudflare Pages Deploy ☁️
+
+Builds a static site and deploys it to Cloudflare Pages with wrangler. The Cloudflare token is read at runtime from AWS SSM via OIDC, so no long-lived token sits in repo secrets.
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write   # required for AWS OIDC
+  contents: read
+
+jobs:
+  deploy:
+    uses: domengabrovsek/github-actions/.github/workflows/cloudflare-pages-deploy.yml@main
+    with:
+      project_name: my-pages-project
+      cloudflare_account_id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      aws_role_arn: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+```
+
+Inputs: `project_name`, `cloudflare_account_id`, `aws_role_arn` (required); `aws_region` (default `eu-central-1`), `ssm_token_path` (default `/home-infra/cloudflare/pages_deploy_token`), `build_command` (default `npm run build`), `output_directory` (default `dist`), `branch`, `node-version-file`.
 
 ## Workflows 🚀
 

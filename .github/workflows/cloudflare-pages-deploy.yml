@@ -1,0 +1,117 @@
+# ==============================================
+# Cloudflare Pages Deploy
+# ==============================================
+# Reusable workflow that builds a static site and deploys it to Cloudflare
+# Pages via wrangler. The Cloudflare API token is read at runtime from AWS SSM
+# Parameter Store using OIDC, so no long-lived token lives in repo secrets.
+#
+# Usage (consumer):
+#
+# name: Deploy
+# on:
+#   push:
+#     branches: [main]
+# permissions:
+#   id-token: write   # required for AWS OIDC
+#   contents: read
+# jobs:
+#   deploy:
+#     uses: domengabrovsek/github-actions/.github/workflows/cloudflare-pages-deploy.yml@main
+#     with:
+#       project_name: my-pages-project
+#       cloudflare_account_id: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+#       aws_role_arn: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+
+name: Cloudflare Pages Deploy
+
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+        description: 'Cloudflare Pages project name'
+      cloudflare_account_id:
+        required: true
+        type: string
+        description: 'Cloudflare account ID'
+      aws_role_arn:
+        required: true
+        type: string
+        description: 'AWS IAM role ARN to assume via OIDC for reading the deploy token'
+      aws_region:
+        required: false
+        type: string
+        default: 'eu-central-1'
+        description: 'AWS region for the SSM lookup'
+      ssm_token_path:
+        required: false
+        type: string
+        default: '/home-infra/cloudflare/pages_deploy_token'
+        description: 'SSM Parameter Store path holding the Cloudflare Pages deploy token'
+      node-version-file:
+        required: false
+        type: string
+        default: '.nvmrc'
+        description: 'File that pins the Node version'
+      build_command:
+        required: false
+        type: string
+        default: 'npm run build'
+        description: 'Command that produces the static output'
+      output_directory:
+        required: false
+        type: string
+        default: 'dist'
+        description: 'Directory wrangler uploads to Pages'
+      branch:
+        required: false
+        type: string
+        default: ''
+        description: 'Deploy branch passed to wrangler (blank lets wrangler infer production vs preview)'
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ${{ inputs.node-version-file }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: ${{ inputs.build_command }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.aws_role_arn }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Read Cloudflare deploy token from SSM
+        env:
+          SSM_TOKEN_PATH: ${{ inputs.ssm_token_path }}
+        run: |
+          token=$(aws ssm get-parameter --name "$SSM_TOKEN_PATH" --with-decryption --query 'Parameter.Value' --output text)
+          echo "::add-mask::$token"
+          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+
+      - name: Deploy with wrangler
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
+          PROJECT_NAME: ${{ inputs.project_name }}
+          OUTPUT_DIR: ${{ inputs.output_directory }}
+          DEPLOY_BRANCH: ${{ inputs.branch }}
+        run: |
+          args=(pages deploy "$OUTPUT_DIR" --project-name "$PROJECT_NAME")
+          if [ -n "$DEPLOY_BRANCH" ]; then
+            args+=(--branch "$DEPLOY_BRANCH")
+          fi
+          npx wrangler@latest "${args[@]}"
