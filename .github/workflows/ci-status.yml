@@ -20,54 +20,15 @@ on:
         description: 'Telegram chat ID to send notifications to'
 
 jobs:
-  format-status:
-    runs-on: ubuntu-latest
-    outputs:
-      message: ${{ steps.build-message.outputs.result }}
-    steps:
-      - name: Build CI status message
-        id: build-message
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          result-encoding: string
-          script: |
-            const run = context.payload.workflow_run;
-
-            const conclusionMap = {
-              success: '✅',
-              failure: '❌',
-              cancelled: '⚠️',
-              timed_out: '⏰',
-              skipped: '⏭️'
-            };
-
-            const emoji = conclusionMap[run.conclusion] || '❓';
-            const conclusion = run.conclusion.charAt(0).toUpperCase() + run.conclusion.slice(1);
-
-            // Map raw GitHub event_name to a human label so the channel makes
-            // the manual-vs-scheduled distinction obvious at a glance.
-            const triggerMap = {
-              workflow_dispatch: 'Manual',
-              schedule: 'Automatic (scheduled)',
-              push: 'Automatic (push)',
-              pull_request: 'Automatic (pull request)',
-              release: 'Automatic (release)',
-            };
-            const triggerLabel = triggerMap[run.event] || `Automatic (${run.event})`;
-
-            let message = `${emoji} CI: ${run.name} - ${conclusion}\n\n`;
-            message += `📦 Repository: ${context.payload.repository.html_url}\n`;
-            message += `🌿 Branch: ${run.head_branch}\n`;
-            message += `⏰ Trigger: ${triggerLabel}\n`;
-            message += `👤 Actor: ${run.actor.login}\n`;
-            message += `🔗 Workflow: ${run.html_url}`;
-
-            return message;
-
   notify:
-    needs: format-status
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@main
+    uses: domengabrovsek/github-actions/.github/workflows/telegram-notify.yml@main
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
-      message: ${{ needs.format-status.outputs.message }}
+      event_type: ci_status
+      status: ${{ github.event.workflow_run.conclusion }}
+      title: ${{ github.event.workflow_run.name }}
+      branch_head: ${{ github.event.workflow_run.head_branch }}
+      trigger: ${{ github.event.workflow_run.event }}
+      actor: ${{ github.event.workflow_run.actor.login }}
+      link: ${{ github.event.workflow_run.html_url }}

@@ -14,7 +14,7 @@ name: Notifications
 
 on:
   pull_request:
-    types: [opened, closed, synchronize, labeled, review_requested]
+    types: [opened, closed, synchronize, review_requested]
     branches: [main, master]
   issue_comment:
     types: [created]
@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   notify:
-    uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/notify.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -47,7 +47,6 @@ One job. Two params. You get notifications for all PR lifecycle events:
 | `pr-review-comment.yml` | Inline code review comment | 🔍 |
 | `pr-review.yml` | Review submitted (approved / changes requested) | 👀 |
 | `pr-review-requested.yml` | Review requested | 👋 |
-| `pr-labeled.yml` | Label added to PR | 🏷️ |
 | `ci-status.yml` | CI workflow completed (success / failure) | ✅❌⚠️ |
 
 ## Setup 🔧
@@ -166,7 +165,7 @@ Routes all PR events to the correct notification handler automatically. See [Qui
 ```yaml
 jobs:
   notify:
-    uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/notify.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -176,19 +175,43 @@ jobs:
 
 You can also use individual workflows if you only want specific notifications:
 
-#### Send Telegram Message 💬
+#### Telegram Notify (central formatter) 💬
 
-Sends a custom message to Telegram.
+The single workflow that renders every Telegram message. Callers supply data
+through typed inputs and pick the layout with `event_type`; the workflow owns all
+formatting (emoji, labels, order, spacing, 300-char body truncation, and the
+derived Repository line). There is no free-form `message` input by design, so
+every notification looks the same.
+
+The PR/CI handlers below call it for you. Call it directly for deploy and
+terraform events, which have no dedicated handler:
 
 ```yaml
 jobs:
-  notify:
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@master
+  notify-start:
+    uses: domengabrovsek/github-actions/.github/workflows/telegram-notify.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
-      message: "Your message here"
+      event_type: deploy_started
+      branch_head: ${{ github.ref_name }}
+      actor: ${{ github.actor }}
+      commit: ${{ github.event.head_commit.message }}
+      link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 ```
+
+`event_type` values: `pr_opened`, `pr_updated`, `pr_merged`, `pr_closed`,
+`pr_review_requested`, `pr_commented`, `pr_review_comment`, `pr_review`,
+`ci_status`, `deploy_started`, `deploy_success`, `deploy_failure`,
+`terraform_started`, `terraform_result`, `drift`.
+
+Data inputs (all optional; the formatter renders the subset relevant to the
+event and omits empties): `status`, `title`, `actor`, `reviewer`, `branch_head`,
+`branch_base`, `file`, `body`, `commits`, `trigger`, `commit`, `stacks`, `link`.
+`status` drives the emoji for the dynamic families - `pr_review`
+(`approved` / `changes_requested` / `commented`), `ci_status`
+(`success` / `failure` / `cancelled` / `timed_out` / `skipped`),
+`terraform_result` (`success` / `failure`), `drift` (`clean` / `detected`).
 
 #### PR Opened Notification 🎉
 
@@ -197,7 +220,7 @@ Sends a notification when a PR is opened, including commit details.
 ```yaml
 jobs:
   pr-opened:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -210,7 +233,7 @@ Sends a notification when changes are pushed to a PR, including new commits.
 ```yaml
 jobs:
   pr-updated:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -223,7 +246,7 @@ Sends a notification when a PR is merged.
 ```yaml
 jobs:
   pr-merged:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -236,7 +259,7 @@ Sends a notification when a PR is closed without being merged.
 ```yaml
 jobs:
   pr-closed:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-closed.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-closed.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -249,7 +272,7 @@ Sends a notification when a comment is left on a PR.
 ```yaml
 jobs:
   pr-commented:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-commented.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-commented.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -262,7 +285,7 @@ Sends a notification when an inline code review comment is left on a PR.
 ```yaml
 jobs:
   pr-review-comment:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-review-comment.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review-comment.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -275,7 +298,7 @@ Sends a notification when a PR review is submitted (approved, changes requested,
 ```yaml
 jobs:
   pr-review:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-review.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -288,20 +311,7 @@ Sends a notification when someone is requested to review a PR.
 ```yaml
 jobs:
   pr-review-requested:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-review-requested.yml@master
-    with:
-      api_url: ${{ vars.TELEGRAM_API_URL }}
-      chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
-```
-
-#### PR Labeled Notification 🏷️
-
-Sends a notification when a label is added to a PR.
-
-```yaml
-jobs:
-  pr-labeled:
-    uses: domengabrovsek/github-actions/.github/workflows/pr-labeled.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/pr-review-requested.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -326,7 +336,7 @@ permissions:
 
 jobs:
   ci-status:
-    uses: domengabrovsek/github-actions/.github/workflows/ci-status.yml@master
+    uses: domengabrovsek/github-actions/.github/workflows/ci-status.yml@main
     with:
       api_url: ${{ vars.TELEGRAM_API_URL }}
       chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -340,7 +350,7 @@ You can send notifications to different Telegram chats for different repositorie
 
 ```yaml
 # Set TELEGRAM_CHAT_ID variable to "123456789" in repo settings
-uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
+uses: domengabrovsek/github-actions/.github/workflows/notify.yml@main
 with:
   api_url: ${{ vars.TELEGRAM_API_URL }}
   chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
@@ -350,7 +360,7 @@ with:
 
 ```yaml
 # Set TELEGRAM_CHAT_ID variable to "987654321" in repo settings
-uses: domengabrovsek/github-actions/.github/workflows/notify.yml@master
+uses: domengabrovsek/github-actions/.github/workflows/notify.yml@main
 with:
   api_url: ${{ vars.TELEGRAM_API_URL }}
   chat_id: ${{ vars.TELEGRAM_CHAT_ID }}

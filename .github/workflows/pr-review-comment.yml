@@ -18,40 +18,14 @@ on:
         description: 'Telegram chat ID to send notifications to'
 
 jobs:
-  format-comment:
-    runs-on: ubuntu-latest
-    outputs:
-      message: ${{ steps.build-message.outputs.result }}
-    steps:
-      - name: Build review comment message
-        id: build-message
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          result-encoding: string
-          script: |
-            const comment = context.payload.comment;
-            const pr = context.payload.pull_request;
-
-            // Truncate comment body to 300 chars
-            let body = comment.body || '';
-            if (body.length > 300) {
-              body = body.substring(0, 300) + '...';
-            }
-
-            let message = `🔍 New Review Comment\n\n`;
-            message += `📝 Title: ${pr.title}\n`;
-            message += `👤 Author: ${comment.user.login}\n`;
-            message += `📄 File: ${comment.path}\n`;
-            message += `💭 Comment: ${body}\n`;
-            message += `📦 Repository: ${context.payload.repository.html_url}\n`;
-            message += `🔗 Pull request: ${comment.html_url}`;
-
-            return message;
-
   notify:
-    needs: format-comment
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@main
+    uses: domengabrovsek/github-actions/.github/workflows/telegram-notify.yml@main
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
-      message: ${{ needs.format-comment.outputs.message }}
+      event_type: pr_review_comment
+      title: ${{ github.event.pull_request.title }}
+      actor: ${{ github.event.comment.user.login }}
+      file: ${{ github.event.comment.path }}
+      body: ${{ github.event.comment.body }}
+      link: ${{ github.event.comment.html_url }}

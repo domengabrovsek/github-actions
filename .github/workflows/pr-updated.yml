@@ -57,17 +57,14 @@ jobs:
 
   notify:
     needs: get-commits
-    uses: domengabrovsek/github-actions/.github/workflows/send-telegram-message.yml@main
+    uses: domengabrovsek/github-actions/.github/workflows/telegram-notify.yml@main
     with:
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
-      message: |
-        🔄 Pull Request Updated
-
-        📝 Title: ${{ github.event.pull_request.title }}
-        👤 Author: ${{ github.event.pull_request.user.login }}
-        🌿 Branch: ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}
-        📦 Repository: ${{ github.server_url }}/${{ github.repository }}
-        🔗 Pull request: ${{ github.event.pull_request.html_url }}
-        📋 Commits:
-        ${{ needs.get-commits.outputs.commits }}
+      event_type: pr_updated
+      title: ${{ github.event.pull_request.title }}
+      actor: ${{ github.event.pull_request.user.login }}
+      branch_head: ${{ github.event.pull_request.head.ref }}
+      branch_base: ${{ github.event.pull_request.base.ref }}
+      link: ${{ github.event.pull_request.html_url }}
+      commits: ${{ needs.get-commits.outputs.commits }}
