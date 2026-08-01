@@ -79,6 +79,11 @@ on:
         type: string
         default: ''
         description: 'Path asserted to exist after build (e.g. dist). Empty skips the assertion.'
+      actionlint:
+        required: false
+        type: boolean
+        default: false
+        description: 'Lint .github/workflows with actionlint. Opt-in: off by default so repos with pre-existing warnings are not broken.'
 
 jobs:
   lint:
@@ -156,9 +161,17 @@ jobs:
           fi
           echo "Build artifact present: $ARTIFACT_PATH"
 
+  actionlint:
+    name: Actionlint
+    if: inputs.actionlint
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+
   gate:
     name: Gate
-    needs: [lint, format, typecheck, test, build]
+    needs: [lint, format, typecheck, test, build, actionlint]
     if: always()
     runs-on: ubuntu-latest
     steps:
