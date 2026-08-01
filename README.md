@@ -102,7 +102,7 @@ jobs:
       build_artifact_path: dist
 ```
 
-Inputs: `lint_command` (default `npm run lint`), `format_command`, `typecheck_command`, `test_command`, `build_command` (default `npm run build`), `build_artifact_path` (asserted to exist after build), `node-version-file`, `install-args`, `runs-on`. Leave a `*_command` empty to skip that check.
+Inputs: `lint_command` (default `npm run lint`), `format_command`, `typecheck_command`, `test_command`, `build_command` (default `npm run build`), `build_artifact_path` (asserted to exist after build), `actionlint` (boolean, default `false` - lints `.github/workflows` when `true`), `node-version-file`, `install-args`, `runs-on`. Leave a `*_command` empty to skip that check.
 
 **Service containers:** tests that need Postgres or another service keep their own job in the consuming repo. A `services:` map cannot be passed through workflow inputs. Point `test_command` at unit tests only, or leave it empty.
 
