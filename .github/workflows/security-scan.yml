@@ -15,9 +15,15 @@
 #     branches: [main]
 # permissions:
 #   contents: read
+#   pull-requests: read   # required: gitleaks-action lists PR commits on pull_request events
 # jobs:
 #   security:
 #     uses: domengabrovsek/github-actions/.github/workflows/security-scan.yml@main
+#
+# The caller MUST grant pull-requests: read at the workflow level. A reusable
+# workflow's token cannot exceed the caller's grant, so a caller that sets only
+# `contents: read` makes gitleaks-action 403 when listing PR commits and the
+# secret scan fails without ever scanning.
 
 name: Security Scan
 
@@ -39,6 +45,10 @@ jobs:
   secret-scan:
     name: Secret Scan (gitleaks)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # gitleaks-action lists PR commits on pull_request events; without this it 403s.
+      pull-requests: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
