@@ -15,7 +15,7 @@ inputs:
     required: false
     default: 'true'
   install-args:
-    description: Extra arguments appended to npm ci (e.g. --ignore-scripts).
+    description: Extra arguments appended to the baseline npm ci (already runs --ignore-scripts --no-audit --no-fund).
     required: false
     default: ''
   fetch-depth:
@@ -39,4 +39,6 @@ runs:
 
     - if: inputs.install == 'true'
       shell: bash
-      run: npm ci ${{ inputs.install-args }}
+      # --ignore-scripts blocks dependency lifecycle scripts (supply-chain safety);
+      # --no-audit/--no-fund drop network calls and noise irrelevant in CI.
+      run: npm ci --ignore-scripts --no-audit --no-fund ${{ inputs.install-args }}
