@@ -19,7 +19,7 @@ on:
 
 jobs:
   get-commits:
-    runs-on: "${{ vars.CI_RUNNER && fromJSON(vars.CI_RUNNER) || 'ubuntu-latest' }}"
+    runs-on: ubuntu-latest
     outputs:
       commits: ${{ steps.format-commits.outputs.result }}
     steps:
