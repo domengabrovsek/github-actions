@@ -1,0 +1,51 @@
+name: Download Artifact
+description: Thin wrapper around actions/download-artifact, SHA-pinned centrally so every repo tracks the same version via @main.
+
+inputs:
+  name:
+    description: Name of the artifact to download. Empty downloads all artifacts from the run.
+    required: false
+    default: ''
+  path:
+    description: Destination directory. Empty uses the current working directory.
+    required: false
+    default: ''
+  pattern:
+    description: Glob pattern of artifact names to download when name is empty.
+    required: false
+    default: ''
+  merge-multiple:
+    description: Merge downloaded artifacts into a single directory instead of one subdir each.
+    required: false
+    default: 'false'
+  github-token:
+    description: Token for downloading artifacts from a different repository or run. Empty stays within the current run.
+    required: false
+    default: ''
+  repository:
+    description: Repository owner/name to download from. Used only with github-token.
+    required: false
+    default: ${{ github.repository }}
+  run-id:
+    description: Workflow run ID to download from. Used only with github-token.
+    required: false
+    default: ${{ github.run_id }}
+
+outputs:
+  download-path:
+    description: Absolute path where the artifacts were downloaded.
+    value: ${{ steps.download.outputs.download-path }}
+
+runs:
+  using: composite
+  steps:
+    - id: download
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        pattern: ${{ inputs.pattern }}
+        merge-multiple: ${{ inputs.merge-multiple }}
+        github-token: ${{ inputs.github-token }}
+        repository: ${{ inputs.repository }}
+        run-id: ${{ inputs.run-id }}

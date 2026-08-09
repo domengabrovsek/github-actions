@@ -24,6 +24,8 @@ Building blocks for your own jobs. See [`docs/actions/`](docs/actions).
 | `checkout` | Centrally-pinned wrapper for `actions/checkout` | [docs](docs/actions/checkout.md) |
 | `aws-credentials` | Centrally-pinned wrapper for `configure-aws-credentials` (OIDC or static keys) | [docs](docs/actions/aws-credentials.md) |
 | `setup-opentofu` | Centrally-pinned wrapper for `opentofu/setup-opentofu` | [docs](docs/actions/setup-opentofu.md) |
+| `upload-artifact` | Centrally-pinned wrapper for `actions/upload-artifact` | [docs](docs/actions/upload-artifact.md) |
+| `download-artifact` | Centrally-pinned wrapper for `actions/download-artifact` | [docs](docs/actions/download-artifact.md) |
 
 ## Reusable workflows
 
