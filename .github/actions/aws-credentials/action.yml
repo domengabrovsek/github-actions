@@ -1,0 +1,49 @@
+name: Configure AWS credentials
+description: Thin wrapper around aws-actions/configure-aws-credentials, SHA-pinned centrally so every repo tracks the same version via @main.
+
+inputs:
+  aws-region:
+    description: AWS region to configure.
+    required: true
+  role-to-assume:
+    description: IAM role ARN to assume via OIDC. Leave blank when using static access keys.
+    required: false
+    default: ''
+  role-session-name:
+    description: Session name for the assumed role.
+    required: false
+    default: ''
+  audience:
+    description: OIDC audience for the web identity token.
+    required: false
+    default: ''
+  role-duration-seconds:
+    description: Lifetime of the assumed-role credentials, in seconds.
+    required: false
+    default: ''
+  aws-access-key-id:
+    description: Static access key ID, as an alternative to role-to-assume.
+    required: false
+    default: ''
+  aws-secret-access-key:
+    description: Static secret access key, paired with aws-access-key-id.
+    required: false
+    default: ''
+  aws-session-token:
+    description: Session token for temporary static credentials.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        role-to-assume: ${{ inputs.role-to-assume }}
+        role-session-name: ${{ inputs.role-session-name }}
+        audience: ${{ inputs.audience }}
+        role-duration-seconds: ${{ inputs.role-duration-seconds }}
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-session-token: ${{ inputs.aws-session-token }}

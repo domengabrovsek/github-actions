@@ -91,12 +91,10 @@ jobs:
     if: inputs.lint_command != ''
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
         with:
           node-version-file: ${{ inputs.node-version-file }}
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund ${{ inputs.install-args }}
+          install-args: ${{ inputs.install-args }}
       - run: ${{ inputs.lint_command }}
 
   format:
@@ -104,12 +102,10 @@ jobs:
     if: inputs.format_command != ''
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
         with:
           node-version-file: ${{ inputs.node-version-file }}
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund ${{ inputs.install-args }}
+          install-args: ${{ inputs.install-args }}
       - run: ${{ inputs.format_command }}
 
   typecheck:
@@ -117,12 +113,10 @@ jobs:
     if: inputs.typecheck_command != ''
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
         with:
           node-version-file: ${{ inputs.node-version-file }}
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund ${{ inputs.install-args }}
+          install-args: ${{ inputs.install-args }}
       - run: ${{ inputs.typecheck_command }}
 
   test:
@@ -130,12 +124,10 @@ jobs:
     if: inputs.test_command != ''
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
         with:
           node-version-file: ${{ inputs.node-version-file }}
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund ${{ inputs.install-args }}
+          install-args: ${{ inputs.install-args }}
       - run: ${{ inputs.test_command }}
 
   build:
@@ -143,12 +135,10 @@ jobs:
     if: inputs.build_command != ''
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
         with:
           node-version-file: ${{ inputs.node-version-file }}
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund ${{ inputs.install-args }}
+          install-args: ${{ inputs.install-args }}
       - run: ${{ inputs.build_command }}
       - name: Assert build artifact exists
         if: inputs.build_artifact_path != ''
@@ -166,7 +156,7 @@ jobs:
     if: inputs.actionlint
     runs-on: ${{ inputs.runs-on }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: domengabrovsek/github-actions/.github/actions/checkout@main
       - uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
 
   gate:

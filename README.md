@@ -80,6 +80,34 @@ Inputs: `node-version-file` (default `.nvmrc`), `node-version` (overrides the fi
 
 The baseline install is `npm ci --ignore-scripts --no-audit --no-fund` (supply-chain safety + less CI noise), applied by both the composite and `node-ci.yml`. `install-args` is appended for repo-specific extras.
 
+### Pinned action wrappers 📌
+
+Thin composite wrappers around the third-party actions used most across the repos. Each wrapper pins the upstream action to a specific SHA in exactly one place here, so bumping a version is a single edit that every repo picks up via `@main`. Reference the wrapper instead of the raw action:
+
+```yaml
+steps:
+  - uses: domengabrovsek/github-actions/.github/actions/checkout@main
+    with:
+      fetch-depth: 0
+
+  - uses: domengabrovsek/github-actions/.github/actions/aws-credentials@main
+    with:
+      role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+      aws-region: eu-central-1
+
+  - uses: domengabrovsek/github-actions/.github/actions/setup-opentofu@main
+    with:
+      tofu_version: 1.9.0
+```
+
+| Wrapper | Pins | Common inputs |
+|---------|------|---------------|
+| `checkout` | `actions/checkout` | `ref`, `fetch-depth`, `submodules`, `path`, `token` |
+| `aws-credentials` | `aws-actions/configure-aws-credentials` | `aws-region` (required), `role-to-assume`, `role-session-name` |
+| `setup-opentofu` | `opentofu/setup-opentofu` | `tofu_version`, `tofu_wrapper` |
+
+Each wrapper passes its inputs straight through to the upstream action and keeps that action's defaults, so it is a drop-in replacement. The `setup-node-npm` composite above uses the `checkout` wrapper internally, so `actions/checkout` is pinned in a single file.
+
 ### Node CI 🧪
 
 Runs lint / format / typecheck / test / build as separate jobs plus a `Gate` aggregator for branch protection. Each check runs only when you pass its command, so a repo enables exactly what it has scripts for.
