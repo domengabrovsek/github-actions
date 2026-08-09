@@ -73,7 +73,7 @@ on:
 jobs:
   deploy:
     name: Deploy to Cloudflare Pages
-    runs-on: ubuntu-latest
+    runs-on: "${{ vars.CI_RUNNER && fromJSON(vars.CI_RUNNER) || 'ubuntu-latest' }}"
     permissions:
       id-token: write
       contents: read
