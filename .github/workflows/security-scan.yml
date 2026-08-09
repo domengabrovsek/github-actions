@@ -50,7 +50,7 @@ jobs:
       # gitleaks-action lists PR commits on pull_request events; without this it 403s.
       pull-requests: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: domengabrovsek/github-actions/.github/actions/checkout@main
         with:
           # Full history so gitleaks scans every commit, not just the tip.
           fetch-depth: 0
@@ -62,7 +62,7 @@ jobs:
     name: Security Scan (bearer)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: domengabrovsek/github-actions/.github/actions/checkout@main
       - name: Bearer (fail on high severity)
         uses: bearer/bearer-action@828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc # v2
         with:

@@ -1,0 +1,35 @@
+name: Setup OpenTofu
+description: Thin wrapper around opentofu/setup-opentofu, SHA-pinned centrally so every repo tracks the same version via @main.
+
+inputs:
+  tofu_version:
+    description: OpenTofu version to install (e.g. 1.9.0). 'latest' installs the newest release.
+    required: false
+    default: 'latest'
+  tofu_wrapper:
+    description: Wrap the tofu binary to expose stdout/stderr/exitcode as step outputs. Set 'false' to call tofu directly.
+    required: false
+    default: 'true'
+  github_token:
+    description: Token used to look up the OpenTofu release. Defaults to the workflow token.
+    required: false
+    default: ${{ github.token }}
+  cli_config_credentials_hostname:
+    description: Hostname of the registry whose credentials are written to the CLI config.
+    required: false
+    default: ''
+  cli_config_credentials_token:
+    description: API token written to the CLI config for the registry hostname above.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
+      with:
+        tofu_version: ${{ inputs.tofu_version }}
+        tofu_wrapper: ${{ inputs.tofu_wrapper }}
+        github_token: ${{ inputs.github_token }}
+        cli_config_credentials_hostname: ${{ inputs.cli_config_credentials_hostname }}
+        cli_config_credentials_token: ${{ inputs.cli_config_credentials_token }}
