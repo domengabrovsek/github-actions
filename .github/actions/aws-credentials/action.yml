@@ -14,9 +14,9 @@ inputs:
     required: false
     default: ''
   audience:
-    description: OIDC audience for the web identity token.
+    description: OIDC audience for the web identity token. Defaults to sts.amazonaws.com.
     required: false
-    default: ''
+    default: sts.amazonaws.com
   role-duration-seconds:
     description: Lifetime of the assumed-role credentials, in seconds.
     required: false
@@ -42,7 +42,10 @@ runs:
         aws-region: ${{ inputs.aws-region }}
         role-to-assume: ${{ inputs.role-to-assume }}
         role-session-name: ${{ inputs.role-session-name }}
-        audience: ${{ inputs.audience }}
+        # Coalesced, not forwarded bare: an empty string overrides the wrapped action's own
+        # default rather than falling back to it, and an empty audience makes GitHub mint the
+        # token with aud=https://github.com/<owner>, which STS then rejects.
+        audience: ${{ inputs.audience || 'sts.amazonaws.com' }}
         role-duration-seconds: ${{ inputs.role-duration-seconds }}
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
         aws-secret-access-key: ${{ inputs.aws-secret-access-key }}

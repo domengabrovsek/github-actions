@@ -19,7 +19,7 @@ OIDC role assumption needs `permissions: id-token: write` on the job.
 | `aws-region` | required | AWS region to configure. |
 | `role-to-assume` | `''` | IAM role ARN to assume via OIDC. Leave blank when using static keys. |
 | `role-session-name` | `''` | Session name for the assumed role. |
-| `audience` | `''` | OIDC audience for the web identity token. |
+| `audience` | `sts.amazonaws.com` | OIDC audience for the web identity token. Leave unset unless your IAM OIDC provider expects a different audience. |
 | `role-duration-seconds` | `''` | Lifetime of the assumed-role credentials, in seconds. |
 | `aws-access-key-id` | `''` | Static access key ID, as an alternative to `role-to-assume`. |
 | `aws-secret-access-key` | `''` | Static secret access key. |
