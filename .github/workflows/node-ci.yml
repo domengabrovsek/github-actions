@@ -2,12 +2,15 @@
 # Node CI
 # ==============================================
 # Reusable workflow for the lint / format / typecheck / test / build skeleton
-# shared across the npm + Biome + Vitest repos. Every check is its own job so
-# branch protection can see them individually, and a final Gate job aggregates
-# them into one stable status.
+# shared across the npm + Biome + Vitest repos. All checks run in ONE job that
+# installs dependencies once, because GitHub bills every job a 1-minute minimum:
+# five sub-second jobs each re-running npm ci cost 5 billed minutes for seconds
+# of work. Each check is a continue-on-error step so every check still runs and
+# shows individually in the log; a final step fails the job if any check failed.
 #
 # Each check runs only when its *_command input is non-empty, so a repo enables
-# exactly the checks it has scripts for.
+# exactly the checks it has scripts for. Consumers wrap this as a `ci:` job and
+# aggregate it in their own Gate check, so this workflow needs no internal gate.
 #
 # Usage (consumer):
 #
@@ -86,62 +89,54 @@ on:
         description: 'Lint .github/workflows with actionlint. Opt-in: off by default so repos with pre-existing warnings are not broken.'
 
 jobs:
-  lint:
-    name: Lint
-    if: inputs.lint_command != ''
+  checks:
+    name: Checks
     runs-on: ${{ inputs.runs-on }}
     steps:
+      # Install once for the whole job. The former per-check jobs each repeated
+      # this npm ci, which was both the slow part and a billed minute apiece.
       - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
         with:
           node-version-file: ${{ inputs.node-version-file }}
           install-args: ${{ inputs.install-args }}
-      - run: ${{ inputs.lint_command }}
 
-  format:
-    name: Format
-    if: inputs.format_command != ''
-    runs-on: ${{ inputs.runs-on }}
-    steps:
-      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
-        with:
-          node-version-file: ${{ inputs.node-version-file }}
-          install-args: ${{ inputs.install-args }}
-      - run: ${{ inputs.format_command }}
+      # Every check is continue-on-error so one failing check does not stop the
+      # others - the final Verify step is what fails the job. Skipped checks
+      # (empty command input) report outcome 'skipped', which Verify treats as OK.
+      - name: Lint
+        id: lint
+        if: inputs.lint_command != ''
+        continue-on-error: true
+        run: ${{ inputs.lint_command }}
 
-  typecheck:
-    name: Typecheck
-    if: inputs.typecheck_command != ''
-    runs-on: ${{ inputs.runs-on }}
-    steps:
-      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
-        with:
-          node-version-file: ${{ inputs.node-version-file }}
-          install-args: ${{ inputs.install-args }}
-      - run: ${{ inputs.typecheck_command }}
+      - name: Format
+        id: format
+        if: inputs.format_command != ''
+        continue-on-error: true
+        run: ${{ inputs.format_command }}
 
-  test:
-    name: Test
-    if: inputs.test_command != ''
-    runs-on: ${{ inputs.runs-on }}
-    steps:
-      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
-        with:
-          node-version-file: ${{ inputs.node-version-file }}
-          install-args: ${{ inputs.install-args }}
-      - run: ${{ inputs.test_command }}
+      - name: Typecheck
+        id: typecheck
+        if: inputs.typecheck_command != ''
+        continue-on-error: true
+        run: ${{ inputs.typecheck_command }}
 
-  build:
-    name: Build
-    if: inputs.build_command != ''
-    runs-on: ${{ inputs.runs-on }}
-    steps:
-      - uses: domengabrovsek/github-actions/.github/actions/setup-node-npm@main
-        with:
-          node-version-file: ${{ inputs.node-version-file }}
-          install-args: ${{ inputs.install-args }}
-      - run: ${{ inputs.build_command }}
+      - name: Test
+        id: test
+        if: inputs.test_command != ''
+        continue-on-error: true
+        run: ${{ inputs.test_command }}
+
+      - name: Build
+        id: build
+        if: inputs.build_command != ''
+        continue-on-error: true
+        run: ${{ inputs.build_command }}
+
       - name: Assert build artifact exists
-        if: inputs.build_artifact_path != ''
+        id: artifact
+        if: inputs.build_command != '' && inputs.build_artifact_path != ''
+        continue-on-error: true
         env:
           ARTIFACT_PATH: ${{ inputs.build_artifact_path }}
         run: |
@@ -151,6 +146,23 @@ jobs:
           fi
           echo "Build artifact present: $ARTIFACT_PATH"
 
+      - name: Verify
+        if: always()
+        env:
+          OUTCOMES: >-
+            ${{ steps.lint.outcome }} ${{ steps.format.outcome }}
+            ${{ steps.typecheck.outcome }} ${{ steps.test.outcome }}
+            ${{ steps.build.outcome }} ${{ steps.artifact.outcome }}
+        run: |
+          echo "Check outcomes: $OUTCOMES"
+          for outcome in $OUTCOMES; do
+            if [ "$outcome" = "failure" ]; then
+              echo "::error::One or more checks failed - see the step logs above."
+              exit 1
+            fi
+          done
+          echo "All checks passed (skipped checks are OK)."
+
   actionlint:
     name: Actionlint
     if: inputs.actionlint
@@ -158,22 +170,3 @@ jobs:
     steps:
       - uses: domengabrovsek/github-actions/.github/actions/checkout@main
       - uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
-
-  gate:
-    name: Gate
-    needs: [lint, format, typecheck, test, build, actionlint]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check results
-        env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
-        run: |
-          echo "Job results: $RESULTS"
-          for result in $RESULTS; do
-            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
-              echo "A required check failed"
-              exit 1
-            fi
-          done
-          echo "All checks passed (skipped checks are OK)"
