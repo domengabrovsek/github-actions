@@ -24,6 +24,7 @@ Building blocks for your own jobs. See [`docs/actions/`](docs/actions).
 | `checkout` | Centrally-pinned wrapper for `actions/checkout` | [docs](docs/actions/checkout.md) |
 | `aws-credentials` | Centrally-pinned wrapper for `configure-aws-credentials` (OIDC or static keys) | [docs](docs/actions/aws-credentials.md) |
 | `setup-opentofu` | Centrally-pinned wrapper for `opentofu/setup-opentofu` | [docs](docs/actions/setup-opentofu.md) |
+| `setup-terraform` | Centrally-pinned wrapper for `hashicorp/setup-terraform` | [docs](docs/actions/setup-terraform.md) |
 | `upload-artifact` | Centrally-pinned wrapper for `actions/upload-artifact` | [docs](docs/actions/upload-artifact.md) |
 | `download-artifact` | Centrally-pinned wrapper for `actions/download-artifact` | [docs](docs/actions/download-artifact.md) |
 
@@ -34,7 +35,7 @@ Whole jobs you call from a consumer repo. See [`docs/workflows/`](docs/workflows
 | Workflow | What it does | Docs |
 |----------|--------------|------|
 | `node-ci.yml` | Lint / format / typecheck / test / build + a `Gate` for branch protection | [docs](docs/workflows/node-ci.md) |
-| `security-scan.yml` | Gitleaks (secrets) + Bearer (SAST) | [docs](docs/workflows/security-scan.md) |
+| `security-scan.yml` | Gitleaks (secrets) + Bearer (SAST) + opt-in Trivy (IaC) | [docs](docs/workflows/security-scan.md) |
 | `cloudflare-pages-deploy.yml` | Build + deploy a static site to Cloudflare Pages via wrangler | [docs](docs/workflows/cloudflare-pages-deploy.md) |
 | `notify.yml` + handlers | Telegram notifications for the full PR lifecycle | [docs](docs/workflows/notifications.md) |
 
