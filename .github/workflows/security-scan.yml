@@ -40,6 +40,16 @@ on:
         type: string
         default: 'medium,low,warning'
         description: 'Bearer severities reported without failing the build'
+      iac_scan:
+        required: false
+        type: boolean
+        default: false
+        description: 'Run the Trivy IaC config scan and publish its SARIF to code scanning'
+      iac_path:
+        required: false
+        type: string
+        default: 'terraform'
+        description: 'Directory scanned when iac_scan is enabled'
 
 jobs:
   secret-scan:
@@ -72,3 +82,29 @@ jobs:
         with:
           severity: ${{ inputs.warn_severity }}
           exit-code: 0
+
+  # Opt-in: Terraform/OpenTofu misconfiguration scan. Off by default because most
+  # consumers ship no IaC. Trivy runs with continue-on-error so a scanner fault
+  # cannot block a PR; the SARIF upload is what surfaces findings, and it is
+  # skipped when Trivy produced no file.
+  iac-scan:
+    name: IaC Scan (trivy)
+    if: inputs.iac_scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Publishing SARIF needs this; the caller must grant it at workflow level too.
+      security-events: write
+    steps:
+      - uses: domengabrovsek/github-actions/.github/actions/checkout@main
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: ${{ inputs.iac_path }}
+          format: sarif
+          output: trivy-results.sarif
+        continue-on-error: true
+      - if: hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: trivy-results.sarif
