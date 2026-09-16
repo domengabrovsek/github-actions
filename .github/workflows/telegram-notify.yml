@@ -95,6 +95,34 @@ jobs:
     name: Format and send
     runs-on: ubuntu-latest
     steps:
+      # Fetching the commit list here rather than in a caller job keeps the whole
+      # notification to one job. Every job bills a full minute even when it runs
+      # for six seconds, so a separate fetch job doubled the cost of every
+      # notification. Only pr_opened renders a commit list, and a caller may still
+      # pass `commits` in, in which case this is skipped.
+      - name: Get commits from PR
+        id: get-commits
+        if: inputs.event_type == 'pr_opened' && inputs.commits == '' && github.event.pull_request
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          result-encoding: string
+          script: |
+            const { data: commits } = await github.rest.pulls.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+
+            if (commits.length === 0) {
+              return '  No commits';
+            }
+
+            return commits.map(commit => {
+              const message = commit.commit.message.split('\n')[0];
+              const sha = commit.sha.substring(0, 7);
+              return `  ${sha} - ${message}`;
+            }).join('\n');
+
       - name: Build message
         id: format
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -108,7 +136,7 @@ jobs:
           BRANCH_BASE: ${{ inputs.branch_base }}
           FILE: ${{ inputs.file }}
           BODY: ${{ inputs.body }}
-          COMMITS: ${{ inputs.commits }}
+          COMMITS: ${{ inputs.commits || steps.get-commits.outputs.result }}
           TRIGGER: ${{ inputs.trigger }}
           COMMIT: ${{ inputs.commit }}
           STACKS: ${{ inputs.stacks }}

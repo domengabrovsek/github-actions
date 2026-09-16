@@ -52,8 +52,13 @@ on:
         description: 'Directory scanned when iac_scan is enabled'
 
 jobs:
-  secret-scan:
-    name: Secret Scan (gitleaks)
+  # gitleaks and bearer share one job because each bills a full minute even though
+  # both finish in seconds, and they need the same checkout. Combined they still
+  # come in under the one-minute floor, so the pair costs what one used to.
+  # A gitleaks finding fails the job before bearer runs, which is the same outcome
+  # as the previous split: a secret in the diff blocked the PR either way.
+  scan:
+    name: Scan (gitleaks, bearer)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -67,12 +72,6 @@ jobs:
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-  security-scan:
-    name: Security Scan (bearer)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: domengabrovsek/github-actions/.github/actions/checkout@main
       - name: Bearer (fail on high severity)
         uses: bearer/bearer-action@828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc # v2
         with:
