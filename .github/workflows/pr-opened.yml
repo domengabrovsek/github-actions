@@ -18,36 +18,9 @@ on:
         description: 'Telegram chat ID to send notifications to'
 
 jobs:
-  get-commits:
-    runs-on: ubuntu-latest
-    outputs:
-      commits: ${{ steps.format-commits.outputs.result }}
-    steps:
-      - name: Get commits from PR
-        id: format-commits
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          result-encoding: string
-          script: |
-            // Get commits from the PR
-            const { data: commits } = await github.rest.pulls.listCommits({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number
-            });
-
-            if (commits.length === 0) {
-              return '  No commits';
-            }
-
-            return commits.map(commit => {
-              const message = commit.commit.message.split('\n')[0];
-              const sha = commit.sha.substring(0, 7);
-              return `  ${sha} - ${message}`;
-            }).join('\n');
-
+  # The commit list is fetched inside telegram-notify so this stays a single job.
+  # A separate fetch job billed a second full minute for roughly five seconds of work.
   notify:
-    needs: get-commits
     uses: domengabrovsek/github-actions/.github/workflows/telegram-notify.yml@main
     with:
       api_url: ${{ inputs.api_url }}
@@ -58,4 +31,3 @@ jobs:
       branch_head: ${{ github.event.pull_request.head.ref }}
       branch_base: ${{ github.event.pull_request.base.ref }}
       link: ${{ github.event.pull_request.html_url }}
-      commits: ${{ needs.get-commits.outputs.commits }}
