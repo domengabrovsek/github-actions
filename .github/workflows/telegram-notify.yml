@@ -91,211 +91,28 @@ on:
         description: 'Primary URL; label (Pull request / Workflow / Run) chosen from event_type'
 
 jobs:
+  # Thin wrapper around the notify composite action. The message builder lives in
+  # .github/actions/notify so a caller that already has a job can send from a step
+  # instead of paying for a second billed minute. Both paths render the same message.
   notify:
     name: Format and send
     runs-on: ubuntu-latest
     steps:
-      # Fetching the commit list here rather than in a caller job keeps the whole
-      # notification to one job. Every job bills a full minute even when it runs
-      # for six seconds, so a separate fetch job doubled the cost of every
-      # notification. Only pr_opened renders a commit list, and a caller may still
-      # pass `commits` in, in which case this is skipped.
-      - name: Get commits from PR
-        id: get-commits
-        if: inputs.event_type == 'pr_opened' && inputs.commits == '' && github.event.pull_request
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      - uses: domengabrovsek/github-actions/.github/actions/notify@main
         with:
-          result-encoding: string
-          script: |
-            const { data: commits } = await github.rest.pulls.listCommits({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number
-            });
-
-            if (commits.length === 0) {
-              return '  No commits';
-            }
-
-            return commits.map(commit => {
-              const message = commit.commit.message.split('\n')[0];
-              const sha = commit.sha.substring(0, 7);
-              return `  ${sha} - ${message}`;
-            }).join('\n');
-
-      - name: Build message
-        id: format
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          EVENT_TYPE: ${{ inputs.event_type }}
-          STATUS: ${{ inputs.status }}
-          TITLE: ${{ inputs.title }}
-          ACTOR: ${{ inputs.actor }}
-          REVIEWER: ${{ inputs.reviewer }}
-          BRANCH_HEAD: ${{ inputs.branch_head }}
-          BRANCH_BASE: ${{ inputs.branch_base }}
-          FILE: ${{ inputs.file }}
-          BODY: ${{ inputs.body }}
-          COMMITS: ${{ inputs.commits || steps.get-commits.outputs.result }}
-          TRIGGER: ${{ inputs.trigger }}
-          COMMIT: ${{ inputs.commit }}
-          STACKS: ${{ inputs.stacks }}
-          LINK: ${{ inputs.link }}
-        with:
-          result-encoding: string
-          script: |
-            const e = process.env;
-            const et = e.EVENT_TYPE || '';
-            const status = e.STATUS || '';
-            const title = e.TITLE || '';
-            const actor = e.ACTOR || '';
-            const reviewer = e.REVIEWER || '';
-            const branchHead = e.BRANCH_HEAD || '';
-            const branchBase = e.BRANCH_BASE || '';
-            const file = e.FILE || '';
-            const commits = e.COMMITS || '';
-            const commit = e.COMMIT || '';
-            const stacks = e.STACKS || '';
-            const link = e.LINK || '';
-
-            let body = e.BODY || '';
-            if (body.length > 300) {
-              body = body.substring(0, 300) + '...';
-            }
-
-            // Uniform across every trigger, so derive it here rather than
-            // making each caller pass (and risk omitting) it.
-            const repository = `${e.GITHUB_SERVER_URL}/${e.GITHUB_REPOSITORY}`;
-
-            const triggerMap = {
-              workflow_dispatch: 'Manual',
-              schedule: 'Automatic (scheduled)',
-              push: 'Automatic (push)',
-              pull_request: 'Automatic (pull request)',
-              release: 'Automatic (release)',
-            };
-            const triggerLabel = e.TRIGGER
-              ? (triggerMap[e.TRIGGER] || `Automatic (${e.TRIGGER})`)
-              : '';
-
-            const branch = (branchHead && branchBase)
-              ? `${branchHead} → ${branchBase}`
-              : (branchHead || branchBase);
-
-            function header() {
-              switch (et) {
-                case 'pr_review': {
-                  const m = {
-                    approved: ['✅', 'Approved'],
-                    changes_requested: ['🔴', 'Changes Requested'],
-                    commented: ['💬', 'Commented'],
-                  };
-                  const [emoji, label] = m[status] || ['👀', status || 'Review'];
-                  return `${emoji} PR Review: ${label}`;
-                }
-                case 'ci_status': {
-                  const m = {
-                    success: '✅', failure: '❌', cancelled: '⚠️',
-                    timed_out: '⏰', skipped: '⏭️',
-                  };
-                  const emoji = m[status] || '❓';
-                  const label = status
-                    ? status.charAt(0).toUpperCase() + status.slice(1)
-                    : 'Unknown';
-                  return `${emoji} CI: ${title} - ${label}`;
-                }
-                case 'terraform_result':
-                  return status === 'success'
-                    ? '✅ Terraform Apply Succeeded'
-                    : '❌ Terraform Apply Failed';
-                case 'drift':
-                  return status === 'clean'
-                    ? '✅ Weekly Drift Check - Clean'
-                    : '⚠️ Weekly Drift Check - Drift Detected';
-                default: {
-                  const fixed = {
-                    pr_opened: '🚀 New Pull Request Opened',
-                    pr_updated: '🔄 Pull Request Updated',
-                    pr_merged: '✅ Pull Request Merged',
-                    pr_closed: '❌ Pull Request Closed',
-                    pr_review_requested: '👋 Review Requested',
-                    pr_commented: '💬 New Comment on PR',
-                    pr_review_comment: '🔍 New Review Comment',
-                    deploy_started: '🚀 Deployment Started',
-                    deploy_success: '✅ Deployment Succeeded',
-                    deploy_failure: '❌ Deployment Failed',
-                    terraform_started: '🚀 Terraform Apply Started',
-                  };
-                  return fixed[et] || 'ℹ️ Notification';
-                }
-              }
-            }
-
-            const F = {
-              title: title && `📝 Title: ${title}`,
-              author: actor && `👤 Author: ${actor}`,
-              requester: actor && `👤 Requester: ${actor}`,
-              review_by: actor && `👤 Reviewer: ${actor}`,
-              actor: actor && `👤 Actor: ${actor}`,
-              reviewer: reviewer && `🔎 Reviewer: ${reviewer}`,
-              branch: branch && `🌿 Branch: ${branch}`,
-              ref: branchHead && `🌿 Branch: ${branchHead}`,
-              file: file && `📄 File: ${file}`,
-              body: body && `💭 Comment: ${body}`,
-              commit: commit && `📝 Commit: ${commit}`,
-              stacks: stacks && `🧱 Stacks: ${stacks}`,
-              trigger: triggerLabel && `⏰ Trigger: ${triggerLabel}`,
-              repository: `📦 Repository: ${repository}`,
-              link_pr: link && `🔗 Pull request: ${link}`,
-              link_wf: link && `🔗 Workflow: ${link}`,
-              link_run: link && `🔗 Run: ${link}`,
-              commits: commits && `📋 Commits:\n${commits}`,
-            };
-
-            const layout = {
-              pr_opened: ['title', 'author', 'branch', 'repository', 'link_pr', 'commits'],
-              pr_updated: ['title', 'author', 'branch', 'repository', 'link_pr', 'commits'],
-              pr_merged: ['title', 'author', 'branch', 'repository', 'link_pr'],
-              pr_closed: ['title', 'author', 'branch', 'repository', 'link_pr'],
-              pr_review_requested: ['title', 'requester', 'reviewer', 'repository', 'link_pr'],
-              pr_commented: ['title', 'author', 'body', 'repository', 'link_pr'],
-              pr_review_comment: ['title', 'author', 'file', 'body', 'repository', 'link_pr'],
-              pr_review: ['title', 'review_by', 'repository', 'link_pr'],
-              ci_status: ['repository', 'ref', 'trigger', 'actor', 'link_wf'],
-              deploy_started: ['repository', 'ref', 'actor', 'commit', 'link_run'],
-              deploy_success: ['repository', 'ref', 'actor', 'commit', 'link_run'],
-              deploy_failure: ['repository', 'ref', 'actor', 'commit', 'link_run'],
-              terraform_started: ['repository', 'ref', 'stacks', 'actor', 'commit', 'link_wf'],
-              terraform_result: ['repository', 'ref', 'actor', 'commit', 'link_wf'],
-              drift: ['repository', 'link_wf'],
-            };
-
-            const lines = (layout[et] || ['repository']).map(k => F[k]).filter(Boolean);
-            return `${header()}\n\n${lines.join('\n')}`;
-
-      - name: Send Telegram notification
-        env:
-          MESSAGE_TEXT: ${{ steps.format.outputs.result }}
-          CHAT_ID: ${{ inputs.chat_id }}
-          API_URL: ${{ inputs.api_url }}
-        run: |
-          payload=$(jq -n --arg text "$MESSAGE_TEXT" --arg chat_id "$CHAT_ID" '{chat_id: $chat_id, message: {text: $text}}')
-
-          echo "Sending notification to Telegram..."
-          response=$(curl -s -w "\n%{http_code}" -X POST "$API_URL" \
-            -H "Content-Type: application/json" \
-            -d "$payload")
-
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-
-          echo "Response status: $http_code"
-          echo "Response body: $body"
-
-          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-            echo "✅ Notification sent successfully!"
-            exit 0
-          else
-            echo "❌ Failed to send notification (HTTP $http_code)"
-            exit 1
-          fi
+          api_url: ${{ inputs.api_url }}
+          chat_id: ${{ inputs.chat_id }}
+          event_type: ${{ inputs.event_type }}
+          status: ${{ inputs.status }}
+          title: ${{ inputs.title }}
+          actor: ${{ inputs.actor }}
+          reviewer: ${{ inputs.reviewer }}
+          branch_head: ${{ inputs.branch_head }}
+          branch_base: ${{ inputs.branch_base }}
+          file: ${{ inputs.file }}
+          body: ${{ inputs.body }}
+          commits: ${{ inputs.commits }}
+          trigger: ${{ inputs.trigger }}
+          commit: ${{ inputs.commit }}
+          stacks: ${{ inputs.stacks }}
+          link: ${{ inputs.link }}
