@@ -1,0 +1,25 @@
+name: Markdownlint
+description: Thin wrapper around DavidAnson/markdownlint-cli2-action, SHA-pinned centrally so every repo tracks the same version via @main.
+
+inputs:
+  globs:
+    description: Glob expression(s) of files to lint, newline-delimited.
+    required: false
+    default: '*.{md,markdown}'
+  config:
+    description: Path of a base configuration file. Empty uses the repo's own .markdownlint* files.
+    required: false
+    default: ''
+  fix:
+    description: Fix supported issues in place ('true' or 'false').
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
+      with:
+        globs: ${{ inputs.globs }}
+        config: ${{ inputs.config }}
+        fix: ${{ inputs.fix }}
