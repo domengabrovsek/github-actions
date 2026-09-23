@@ -27,6 +27,7 @@ Building blocks for your own jobs. See [`docs/actions/`](docs/actions).
 | `setup-terraform` | Centrally-pinned wrapper for `hashicorp/setup-terraform` | [docs](docs/actions/setup-terraform.md) |
 | `upload-artifact` | Centrally-pinned wrapper for `actions/upload-artifact` | [docs](docs/actions/upload-artifact.md) |
 | `download-artifact` | Centrally-pinned wrapper for `actions/download-artifact` | [docs](docs/actions/download-artifact.md) |
+| `markdownlint` | Centrally-pinned wrapper for `markdownlint-cli2-action` | [docs](docs/actions/markdownlint.md) |
 
 ## Reusable workflows
 
