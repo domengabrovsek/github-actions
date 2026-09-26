@@ -22,6 +22,10 @@ inputs:
     description: GitHub token for comments and API calls. Empty uses the Claude GitHub App through OIDC.
     required: false
     default: ''
+  allowed_non_write_users:
+    description: Comma-separated usernames allowed without write access, or '*'. Any value also keeps the git token out of .git/config and turns on subprocess isolation. Needs github_token.
+    required: false
+    default: ''
 
 outputs:
   structured_output:
@@ -39,3 +43,4 @@ runs:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
         github_token: ${{ inputs.github_token }}
+        allowed_non_write_users: ${{ inputs.allowed_non_write_users }}

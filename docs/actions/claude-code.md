@@ -22,6 +22,7 @@ steps:
 | `claude_code_oauth_token` | none | Pro/Max OAuth token from `claude setup-token`. |
 | `anthropic_api_key` | none | Anthropic API key, the alternative to the OAuth token. |
 | `github_token` | none | GitHub token for comments. Empty uses the Claude GitHub App. |
+| `allowed_non_write_users` | none | Usernames allowed without write access, or `*`. Needs `github_token`. |
 
 ## Outputs
 
@@ -33,4 +34,5 @@ steps:
 
 - Pins `claude-code-action` to a single SHA in [`.github/actions/claude-code/action.yml`](../../.github/actions/claude-code/action.yml).
 - Needs a prior checkout step.
+- Any `allowed_non_write_users` value makes git read the token from a credential helper instead of `.git/config`, so Claude's file tools cannot reach it. It also isolates subprocesses. Set it to a user who already has write access, such as the repo owner, to get that hardening without widening who can run Claude.
 - Setting `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: "1"` in the job `env` needs `bubblewrap` on the runner. Install it first with `sudo apt-get install -y bubblewrap`.
