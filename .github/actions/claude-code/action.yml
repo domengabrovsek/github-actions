@@ -1,0 +1,41 @@
+name: Claude Code
+description: Thin wrapper around anthropics/claude-code-action, SHA-pinned centrally so every repo tracks the same version via @main.
+
+inputs:
+  prompt:
+    description: Instructions for Claude. Empty uses the triggering event's context.
+    required: false
+    default: ''
+  claude_args:
+    description: Extra Claude Code CLI arguments, such as --model, --allowedTools, --disallowedTools, or --json-schema.
+    required: false
+    default: ''
+  claude_code_oauth_token:
+    description: Claude Pro/Max OAuth token from `claude setup-token`. Pass this or anthropic_api_key.
+    required: false
+    default: ''
+  anthropic_api_key:
+    description: Anthropic API key. Pass this or claude_code_oauth_token.
+    required: false
+    default: ''
+  github_token:
+    description: GitHub token for comments and API calls. Empty uses the Claude GitHub App through OIDC.
+    required: false
+    default: ''
+
+outputs:
+  structured_output:
+    description: JSON string of the fields Claude returns when claude_args sets --json-schema.
+    value: ${{ steps.claude.outputs.structured_output }}
+
+runs:
+  using: composite
+  steps:
+    - id: claude
+      uses: anthropics/claude-code-action@756cc22e19660d20e8cc9496b4f242475a7f7790 # v1.0.235
+      with:
+        prompt: ${{ inputs.prompt }}
+        claude_args: ${{ inputs.claude_args }}
+        claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        github_token: ${{ inputs.github_token }}
