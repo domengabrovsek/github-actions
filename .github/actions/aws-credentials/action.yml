@@ -33,11 +33,31 @@ inputs:
     description: Session token for temporary static credentials.
     required: false
     default: ''
+  output-env-credentials:
+    description: Export the credentials as environment variables for every later step. Set 'false' to keep them out of later steps.
+    required: false
+    default: 'true'
+  output-credentials:
+    description: Return the credentials as step outputs, for a caller that passes them to one step only.
+    required: false
+    default: 'false'
+
+outputs:
+  aws-access-key-id:
+    description: Access key ID, set when output-credentials is 'true'.
+    value: ${{ steps.configure.outputs.aws-access-key-id }}
+  aws-secret-access-key:
+    description: Secret access key, set when output-credentials is 'true'.
+    value: ${{ steps.configure.outputs.aws-secret-access-key }}
+  aws-session-token:
+    description: Session token, set when output-credentials is 'true'.
+    value: ${{ steps.configure.outputs.aws-session-token }}
 
 runs:
   using: composite
   steps:
-    - uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+    - id: configure
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
       with:
         aws-region: ${{ inputs.aws-region }}
         role-to-assume: ${{ inputs.role-to-assume }}
@@ -50,3 +70,5 @@ runs:
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
         aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
         aws-session-token: ${{ inputs.aws-session-token }}
+        output-env-credentials: ${{ inputs.output-env-credentials || 'true' }}
+        output-credentials: ${{ inputs.output-credentials || 'false' }}

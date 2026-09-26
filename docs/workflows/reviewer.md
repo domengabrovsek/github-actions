@@ -38,12 +38,12 @@ jobs:
 
 ## Onboarding a repo
 
-1. Add the repo to `reviewer_repos` in home-infra's `cloud/stacks/github`. Terraform sets the `REVIEWER_ROLE_ARN` variable, the `safe-to-review` label, and "Allow GitHub Actions to create and approve pull requests".
+1. Add `"<repo>": <repo id>` to home-infra's `cloud/reviewer-repos.json` (`gh api repos/domengabrovsek/<repo> --jq .id`). Terraform lets that repo assume the `github-reviewer` role and sets the `REVIEWER_ROLE_ARN` variable, the `safe-to-review` label, and "Allow GitHub Actions to create and approve pull requests". The home-infra GitHub App must be installed on the repo.
 2. Add the caller above. Change `branches` when the default branch is not `main`.
 
 ## Notes
 
-- Call it with `@main`, including from this repo. The `github-reviewer` role trusts only `reviewer.yml` at `refs/heads/main` in repos of this owner, and only reads `/github-reviewer/claude_code_oauth_token`.
+- Call it with `@main`, including from this repo. The `github-reviewer` role trusts only `reviewer.yml` at `refs/heads/main`, run from a repo listed in `cloud/reviewer-repos.json`, and only reads `/github-reviewer/claude_code_oauth_token`.
 - Claude checks each change against agent-config's `AGENTS.md` and `skills/review-pr/checklist.md` from `main`, plus the repo's own `AGENTS.md` or `CLAUDE.md`.
 - Fork PRs get a review only when the owner adds the `safe-to-review` label. The run checks out `main`, reads a diff pinned to the labeled commit, removes the label, and skips approval and reply rounds.
 - Every job runs on `ubuntu-latest`, because the reviewer holds the token while it reads untrusted PR content.

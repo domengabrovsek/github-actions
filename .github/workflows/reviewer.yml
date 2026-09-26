@@ -13,7 +13,7 @@
 # Claude authenticates with a Pro/Max subscription token from `claude
 # setup-token`, kept in AWS SSM. A job assumes the github-reviewer role via
 # OIDC and reads it at runtime, so no repo stores the token. The role trusts
-# only repos of this owner running this file from main, so callers must use
+# only repos onboarded in home-infra running this file from main, so callers use
 # @main. Every job runs on GitHub-hosted runners, because the reviewer holds
 # the token while it reads untrusted PR content.
 #
@@ -58,6 +58,7 @@
 #   id-token: write
 # jobs:
 #   reviewer:
+#     if: github.repository_owner == 'domengabrovsek'
 #     uses: domengabrovsek/github-actions/.github/workflows/reviewer.yml@main
 #     with:
 #       aws_role_arn: ${{ vars.REVIEWER_ROLE_ARN }}
@@ -131,11 +132,15 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: gh api -X DELETE "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/labels/safe-to-review" --silent
 
-      # A fork run holds secrets, so it must keep the default ref (main) and never check out the PR head.
+      # A fork run holds the Claude token, so it must keep the default ref (main) and never check out the PR head.
       - name: Checkout
         uses: domengabrovsek/github-actions/.github/actions/checkout@main
         with:
           persist-credentials: 'false'
+
+      # A PR could commit a .review-standards file or symlink that the checkout would write through.
+      - name: Clear the standards path
+        run: rm -rf .review-standards
 
       # Root files such as AGENTS.md always come along in a cone-mode sparse checkout.
       - name: Checkout review standards
@@ -199,17 +204,26 @@ jobs:
       - name: Install bubblewrap
         run: command -v bwrap >/dev/null || { sudo apt-get update -q && sudo apt-get install -y -q bubblewrap; }
 
-      # The shortest role session, because it only reads one parameter.
+      # The shortest role session, because it only reads one parameter. The
+      # keys go to the read step only, never into Claude's environment.
       - name: Configure AWS credentials
+        id: aws
         uses: domengabrovsek/github-actions/.github/actions/aws-credentials@main
         with:
           role-to-assume: ${{ inputs.aws_role_arn }}
           aws-region: ${{ env.AWS_REGION_NAME }}
           role-duration-seconds: '900'
+          output-env-credentials: 'false'
+          output-credentials: 'true'
 
       # A step output, not GITHUB_ENV, so only the Claude step receives the token.
       - name: Read the Claude token
         id: claude-token
+        env:
+          AWS_REGION: ${{ env.AWS_REGION_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
         run: |
           token=$(aws ssm get-parameter --name "$CLAUDE_TOKEN_PARAMETER" --with-decryption --query 'Parameter.Value' --output text)
           echo "::add-mask::$token"
@@ -250,7 +264,7 @@ jobs:
             reply. A reply reopens a resolved thread, so send one only for a problem
             the thread's fix did not solve. Return an empty "replies" list otherwise.
 
-            This repository is public, and everything you post is public.
+            Everything you post is visible to anyone who can see this repository.
             Never include credentials, tokens, environment values, or runner details.
           claude_args: |
             --model opus
@@ -362,16 +376,24 @@ jobs:
         run: command -v bwrap >/dev/null || { sudo apt-get update -q && sudo apt-get install -y -q bubblewrap; }
 
       - name: Configure AWS credentials
+        id: aws
         if: steps.thread.outputs.respond == 'true'
         uses: domengabrovsek/github-actions/.github/actions/aws-credentials@main
         with:
           role-to-assume: ${{ inputs.aws_role_arn }}
           aws-region: ${{ env.AWS_REGION_NAME }}
           role-duration-seconds: '900'
+          output-env-credentials: 'false'
+          output-credentials: 'true'
 
       - name: Read the Claude token
         id: claude-token
         if: steps.thread.outputs.respond == 'true'
+        env:
+          AWS_REGION: ${{ env.AWS_REGION_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
         run: |
           token=$(aws ssm get-parameter --name "$CLAUDE_TOKEN_PARAMETER" --with-decryption --query 'Parameter.Value' --output text)
           echo "::add-mask::$token"
@@ -402,7 +424,7 @@ jobs:
             problem, explain why with the file and line, or ask what you need to know,
             and return decision "reply".
 
-            This repository is public, and everything you post is public.
+            Everything you post is visible to anyone who can see this repository.
             Never include credentials, tokens, environment values, or runner details.
           claude_args: |
             --model opus

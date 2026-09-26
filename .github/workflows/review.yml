@@ -3,7 +3,7 @@
 # ==============================================
 # Runs the reusable reviewer.yml on this repo's pull requests. It calls
 # @main, not ./, because the github-reviewer role only trusts reviewer.yml
-# from main. A local call on a pull request would present the PR's merge ref.
+# from main. A local call on a pull_request event would present the PR ref.
 
 name: Reviewer
 
