@@ -29,6 +29,7 @@ Building blocks for your own jobs. See [`docs/actions/`](docs/actions).
 | `download-artifact` | Centrally-pinned wrapper for `actions/download-artifact` | [docs](docs/actions/download-artifact.md) |
 | `markdownlint` | Centrally-pinned wrapper for `markdownlint-cli2-action` | [docs](docs/actions/markdownlint.md) |
 | `claude-code` | Centrally-pinned wrapper for `anthropics/claude-code-action` | [docs](docs/actions/claude-code.md) |
+| `github-app-token` | Centrally-pinned wrapper for `actions/create-github-app-token` | [docs](docs/actions/github-app-token.md) |
 
 ## Reusable workflows
 
