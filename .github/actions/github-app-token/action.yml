@@ -1,0 +1,50 @@
+name: GitHub App Token
+description: Thin wrapper around actions/create-github-app-token, SHA-pinned centrally so every repo tracks the same version via @main.
+
+inputs:
+  client-id:
+    description: GitHub App client ID.
+    required: true
+  private-key:
+    description: GitHub App private key.
+    required: true
+  owner:
+    description: Owner of the App installation. Empty uses the current repository owner.
+    required: false
+    default: ''
+  repositories:
+    description: Comma or newline-separated repositories the token may access. Empty uses the current repository.
+    required: false
+    default: ''
+  permission-contents:
+    description: Contents permission for the token (read or write). Empty keeps the installation's permission.
+    required: false
+    default: ''
+  permission-pull-requests:
+    description: Pull requests permission for the token (read or write). Empty keeps the installation's permission.
+    required: false
+    default: ''
+
+outputs:
+  token:
+    description: Installation access token, revoked when the job ends.
+    value: ${{ steps.token.outputs.token }}
+  app-slug:
+    description: App slug. The App posts as <app-slug>[bot].
+    value: ${{ steps.token.outputs.app-slug }}
+  installation-id:
+    description: Installation ID of the App.
+    value: ${{ steps.token.outputs.installation-id }}
+
+runs:
+  using: composite
+  steps:
+    - id: token
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+      with:
+        client-id: ${{ inputs.client-id }}
+        private-key: ${{ inputs.private-key }}
+        owner: ${{ inputs.owner }}
+        repositories: ${{ inputs.repositories }}
+        permission-contents: ${{ inputs.permission-contents }}
+        permission-pull-requests: ${{ inputs.permission-pull-requests }}
