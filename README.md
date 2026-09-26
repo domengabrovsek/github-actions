@@ -40,6 +40,7 @@ Whole jobs you call from a consumer repo. See [`docs/workflows/`](docs/workflows
 | `security-scan.yml` | Gitleaks (secrets) + Bearer (SAST) + opt-in Trivy (IaC) | [docs](docs/workflows/security-scan.md) |
 | `cloudflare-pages-deploy.yml` | Build + deploy a static site to Cloudflare Pages via wrangler | [docs](docs/workflows/cloudflare-pages-deploy.md) |
 | `notify.yml` + handlers | Telegram notifications for the full PR lifecycle | [docs](docs/workflows/notifications.md) |
+| `reviewer.yml` | Claude PR review with inline comments, thread replies, and approval | [docs](docs/workflows/reviewer.md) |
 
 ## Telegram notifications quick start
 

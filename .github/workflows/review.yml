@@ -1,0 +1,30 @@
+# ==============================================
+# Reviewer
+# ==============================================
+# Runs the reusable reviewer.yml on this repo's pull requests. It calls
+# @main, not ./, because the github-reviewer role only trusts reviewer.yml
+# from main. A local call on a pull request would present the PR's merge ref.
+
+name: Reviewer
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    branches: [main]
+  pull_request_target:
+    types: [labeled]
+    branches: [main]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  reviewer:
+    if: github.repository_owner == 'domengabrovsek'
+    uses: domengabrovsek/github-actions/.github/workflows/reviewer.yml@main
+    with:
+      aws_role_arn: ${{ vars.REVIEWER_ROLE_ARN }}
