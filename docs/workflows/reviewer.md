@@ -17,6 +17,9 @@ on:
   pull_request_review_comment:
     types: [created]
 
+# contents: write is for the shared workflow's reply jobs, which resolve and
+# reopen review threads and run no PR code. The Claude review job keeps
+# contents: read.
 permissions:
   contents: write
   pull-requests: write
