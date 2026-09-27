@@ -24,6 +24,8 @@ OIDC role assumption needs `permissions: id-token: write` on the job.
 | `aws-access-key-id` | `''` | Static access key ID, as an alternative to `role-to-assume`. |
 | `aws-secret-access-key` | `''` | Static secret access key. |
 | `aws-session-token` | `''` | Session token for temporary static credentials. |
+| `output-env-credentials` | `true` | Export the credentials to every later step. Set `false` to keep them out of later steps. |
+| `output-credentials` | `false` | Return the credentials as step outputs (`aws-access-key-id`, `aws-secret-access-key`, `aws-session-token`), for passing to one step only. |
 
 ## Notes
 
