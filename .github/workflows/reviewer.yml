@@ -508,9 +508,12 @@ jobs:
           # Claude's standing approvals, one "id commit" pair per line.
           APPROVALS=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews" \
             --jq '.[] | select(.user.login == "github-actions[bot]" and .state == "APPROVED") | "\(.id) \(.commit_id)"')
+          # commit_id pins the approval to the commit checked above, so a push that
+          # lands before this call never inherits it.
           if [ "$OPEN" -eq 0 ]; then
             grep -q " $HEAD_SHA$" <<< "$APPROVALS" ||
-              gh pr review "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --approve --body "$(shuf -n 1 <<< "$APPROVAL_MESSAGES")"
+              gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews" \
+                -f commit_id="$HEAD_SHA" -f event=APPROVE -f body="$(shuf -n 1 <<< "$APPROVAL_MESSAGES")" --silent
           else
             while read -r REVIEW_ID _; do
               [ -n "$REVIEW_ID" ] || continue
