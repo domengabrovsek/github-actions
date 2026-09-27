@@ -17,6 +17,9 @@ on:
   pull_request_review_comment:
     types: [created]
 
+# contents: write is for the shared workflow's reply jobs, which resolve and
+# reopen review threads and run no PR code. The Claude review job keeps
+# contents: read.
 permissions:
   contents: write
   pull-requests: write
@@ -39,7 +42,7 @@ jobs:
 ## Onboarding a repo
 
 1. Add `"<repo>": <repo id>` to home-infra's `cloud/reviewer-repos.json` (`gh api repos/domengabrovsek/<repo> --jq .id`). Terraform lets that repo assume the `github-reviewer` role and sets the `REVIEWER_ROLE_ARN` variable, the `safe-to-review` label, and "Allow GitHub Actions to create and approve pull requests". The home-infra GitHub App must be installed on the repo.
-2. Add the caller above. Change `branches` when the default branch is not `main`.
+2. Once that apply finishes, add the caller above in its own PR. It fails until the apply has set the variable and the trust. Change `branches` when the default branch is not `main`.
 
 ## Notes
 
