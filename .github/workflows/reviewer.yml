@@ -32,8 +32,7 @@
 # only what the owner saw. The run stops when the PR head moved past that
 # commit, because Claude's comments land on the live head. The run removes
 # the label, so the owner adds it again to review a later push. Fork PRs get
-# no approval, because diff text could talk Claude into one. They get no
-# reply rounds, because fork review comments get no OIDC token either.
+# no reply rounds, because fork review comments get no OIDC token either.
 #
 # Claude gets no shell, network, or file-write tools. It reads the checkout
 # and prefetched PR data. A review posts new points through the inline
@@ -475,7 +474,6 @@ jobs:
     needs: [review, review-replies, reply-post]
     if: >-
       !cancelled() &&
-      github.event_name != 'pull_request_target' &&
       (needs.review.result == 'success' &&
        (needs.review-replies.result == 'success' || needs.review-replies.result == 'skipped') ||
        needs.reply-post.result == 'success')
@@ -494,7 +492,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          REVIEWED_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
+          REVIEWED_SHA: ${{ github.event_name != 'pull_request_review_comment' && github.event.pull_request.head.sha || '' }}
         run: |
           PR=$(gh api graphql \
             -f owner="${GITHUB_REPOSITORY%/*}" -f repo="${GITHUB_REPOSITORY#*/}" -F pr="$PR_NUMBER" \
@@ -510,9 +508,12 @@ jobs:
           # Claude's standing approvals, one "id commit" pair per line.
           APPROVALS=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews" \
             --jq '.[] | select(.user.login == "github-actions[bot]" and .state == "APPROVED") | "\(.id) \(.commit_id)"')
+          # commit_id pins the approval to the commit checked above, so a push that
+          # lands before this call never inherits it.
           if [ "$OPEN" -eq 0 ]; then
             grep -q " $HEAD_SHA$" <<< "$APPROVALS" ||
-              gh pr review "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --approve --body "$(shuf -n 1 <<< "$APPROVAL_MESSAGES")"
+              gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews" \
+                -f commit_id="$HEAD_SHA" -f event=APPROVE -f body="$(shuf -n 1 <<< "$APPROVAL_MESSAGES")" --silent
           else
             while read -r REVIEW_ID _; do
               [ -n "$REVIEW_ID" ] || continue

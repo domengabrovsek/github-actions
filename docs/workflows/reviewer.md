@@ -45,6 +45,7 @@ jobs:
 
 - Call it with `@main`, including from this repo. The `github-reviewer` role trusts only `reviewer.yml` at `refs/heads/main`, run from a repo listed in `cloud/reviewer-repos.json`, and only reads `/github-reviewer/claude_code_oauth_token`.
 - Claude checks each change against agent-config's `AGENTS.md` and `skills/review-pr/checklist.md` from `main`, plus the repo's own `AGENTS.md` or `CLAUDE.md`.
-- Fork PRs get a review only when the owner adds the `safe-to-review` label. The run checks out `main`, reads a diff pinned to the labeled commit, removes the label, and skips approval and reply rounds.
+- Fork PRs get a review only when the owner adds the `safe-to-review` label. The run checks out `main`, reads a diff pinned to the labeled commit, removes the label, and skips reply rounds. A clean review approves, as on same-repo PRs.
+- Claude's approval never merges anything by itself while the owner is the only writer. Before giving another account write access, require a code-owner review so a steered approval cannot satisfy branch protection.
 - Every job runs on `ubuntu-latest`, because the reviewer holds the token while it reads untrusted PR content.
 - Private repos spend Actions minutes on each review.
