@@ -46,10 +46,6 @@ Whole jobs you call from a consumer repo. See [`docs/workflows/`](docs/workflows
 | `notify.yml` + handlers | Telegram notifications for the full PR lifecycle, CI, deploy and terraform events | [docs](docs/workflows/notifications.md) |
 | `reviewer.yml` | Claude PR review with inline comments, thread replies, and approval | [docs](docs/workflows/reviewer.md) |
 
-## Decisions
+## Design decisions
 
-Architecture decision records live in [`docs/adr/`](docs/adr):
-
-- [0001: Central formatter owns all Telegram message layout](docs/adr/0001-central-telegram-message-formatter.md)
-
-Other design choices and their reasons are in [docs/architecture.md](docs/architecture.md#design-decisions).
+Each design choice and its reason is in [docs/architecture.md](docs/architecture.md#design-decisions).

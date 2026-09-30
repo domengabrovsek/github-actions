@@ -40,4 +40,4 @@ Set only when `output-credentials` is `true`.
 ## Notes
 
 - Pins `configure-aws-credentials` to a single SHA in [`.github/actions/aws-credentials/action.yml`](../../.github/actions/aws-credentials/action.yml).
-- `audience`, `output-env-credentials` and `output-credentials` are coalesced to their defaults when a caller passes an empty string. An empty string would otherwise override the upstream default, and an empty audience makes STS reject the token (`action.yml:65-68`).
+- `audience`, `output-env-credentials` and `output-credentials` are coalesced to their defaults when a caller passes an empty string. An empty string would otherwise override the upstream default, and an empty audience makes STS reject the token (`action.yml:65-74`).

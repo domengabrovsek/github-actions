@@ -1,6 +1,6 @@
 # Telegram notifications
 
-Telegram notifications for the full PR lifecycle, plus CI, deploy and terraform events. A router workflow dispatches PR events to per-event handlers, and one formatter renders their messages so they all look the same. The format is fixed by [ADR 0001](../adr/0001-central-telegram-message-formatter.md).
+Telegram notifications for the full PR lifecycle, plus CI, deploy and terraform events. A router workflow dispatches PR events to per-event handlers, and one formatter renders their messages so they all look the same.
 
 ## Setup
 
@@ -132,7 +132,7 @@ The same message sent as the last step of a deploy job that already runs:
 
 **Data inputs** (all optional; the formatter renders the subset relevant to the event and omits empties): `status`, `title`, `actor`, `reviewer`, `branch_head`, `branch_base`, `file`, `body`, `commits`, `trigger`, `commit`, `stacks`, `link`.
 
-`trigger` takes a raw event name and renders a label: `workflow_dispatch` shows as Manual, `schedule` as Automatic (scheduled), and any other event as Automatic (`<event>`) (`.github/actions/notify/action.yml:113-122`).
+`trigger` takes a raw event name and renders a label: `workflow_dispatch` shows as Manual, and `schedule`, `push`, `pull_request` and `release` as Automatic (scheduled), (push), (pull request) and (release). An event outside that map shows as Automatic (`<event>`) (`.github/actions/notify/action.yml:113-122`).
 
 `status` drives the emoji for the dynamic families:
 
@@ -167,5 +167,5 @@ with:
 | `show_author` | `true` | Adds `github.actor`. |
 | `show_commit` | `true` | Adds the short SHA and the head commit subject. |
 
-Every message also gets the Repository and Workflow run links. The send ignores errors (`|| true`), so a failed send never fails the job (`.github/actions/telegram-notify/action.yml:79-84`). Because the caller writes the header, its messages can differ from the formatter's layout. [ADR 0001](../adr/0001-central-telegram-message-formatter.md) says callers never supply message layout, so new callers use the `notify` action instead.
+Every message also gets the Repository and Workflow run links. The send ignores errors (`|| true`), so a failed send never fails the job (`.github/actions/telegram-notify/action.yml:79-84`). Because the caller writes the header, its messages can differ from the formatter's layout. New callers use the `notify` action, which keeps every message in one layout.
 
