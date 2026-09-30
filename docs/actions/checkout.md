@@ -23,7 +23,7 @@ steps:
 | `lfs` | `false` | Download Git LFS files. |
 | `path` | workspace root | Directory under `$GITHUB_WORKSPACE` to check out into. |
 | `clean` | `true` | Run `git clean` and reset before fetching. |
-| `persist-credentials` | `true` | Keep the auth token in git config for later steps. |
+| `persist-credentials` | `true` | Keep the auth token in `.git/config` for later steps. Set `false` when a later step runs untrusted code or an agent that can read files. |
 | `sparse-checkout` | `''` | Newline-separated patterns for a sparse checkout. |
 
 ## Notes

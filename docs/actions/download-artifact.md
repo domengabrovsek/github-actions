@@ -31,4 +31,4 @@ steps:
 ## Notes
 
 - Pins `download-artifact` to a single SHA in [`.github/actions/download-artifact/action.yml`](../../.github/actions/download-artifact/action.yml).
-- Pinned to v8. Repos on v4 should test on adoption - artifact v5+ carried breaking changes.
+- Pinned to v8. A repo moving from an older major should read the [upstream releases](https://github.com/actions/download-artifact/releases) before adopting it.
