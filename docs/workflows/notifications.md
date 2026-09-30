@@ -113,10 +113,11 @@ jobs:
       link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 ```
 
-The same message sent as the last step of a deploy job that already runs:
+The same message sent as the last step of a deploy job that already runs. The action fails its step on a non-2xx webhook response, so `continue-on-error: true` keeps a Telegram outage from marking a good deploy as failed:
 
 ```yaml
       - if: always()
+        continue-on-error: true
         uses: domengabrovsek/github-actions/.github/actions/notify@main
         with:
           api_url: ${{ vars.TELEGRAM_API_URL }}
