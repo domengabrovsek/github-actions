@@ -16,7 +16,7 @@ Composite actions come in three groups:
 
 - **Wrappers** re-declare one third-party action's inputs and pin it to a SHA: `checkout`, `aws-credentials`, `setup-opentofu`, `setup-terraform`, `upload-artifact`, `download-artifact`, `markdownlint`, `claude-code`.
 - **Bundles** combine steps: `setup-node-npm` runs checkout, `actions/setup-node`, and a hardened `npm ci`.
-- **Senders** post Telegram messages: `notify` renders the standard format, and `telegram-notify` sends a caller-titled message. See [notifications](workflows/notifications.md).
+- **Sender**: `notify` renders and sends the standard Telegram message. See [notifications](workflows/notifications.md).
 
 ## How the parts connect
 
@@ -111,6 +111,6 @@ Check each change against callers:
 | --- | --- |
 | `.github/actions/` | Composite actions, one directory each |
 | `.github/workflows/` | Reusable workflows and this repo's own workflows |
-| `docs/actions/` | One page per wrapper or bundle action. The Telegram senders are in `docs/workflows/notifications.md`. |
-| `docs/workflows/` | One page per reusable workflow. `notifications.md` covers the whole notification family: `notify.yml`, the `pr-*.yml` handlers, `ci-status.yml`, `telegram-notify.yml`, and both Telegram sender actions. |
+| `docs/actions/` | One page per wrapper or bundle action. The `notify` action is in `docs/workflows/notifications.md`. |
+| `docs/workflows/` | One page per reusable workflow. `notifications.md` covers the whole notification family: `notify.yml`, the `pr-*.yml` handlers, `ci-status.yml`, `telegram-notify.yml`, and the `notify` action. |
 | `README.md` | Index of every action and workflow |
