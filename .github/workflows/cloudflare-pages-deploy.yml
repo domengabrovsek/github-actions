@@ -70,6 +70,11 @@ on:
         default: ''
         description: 'Deploy branch passed to wrangler (blank lets wrangler infer production vs preview)'
 
+# Pins wrangler itself; npx has no lockfile, so its dependencies still resolve
+# at run time. Bump it in this one place.
+env:
+  WRANGLER_VERSION: 4.144.0
+
 jobs:
   deploy:
     name: Deploy to Cloudflare Pages
@@ -84,22 +89,33 @@ jobs:
 
       - run: ${{ inputs.build_command }}
 
+      # The AWS keys go only to the SSM read and the Cloudflare token only to
+      # the deploy, so neither reaches steps that do not need it.
       - name: Configure AWS credentials
+        id: aws
         uses: domengabrovsek/github-actions/.github/actions/aws-credentials@main
         with:
           role-to-assume: ${{ inputs.aws_role_arn }}
           aws-region: ${{ inputs.aws_region }}
+          output-env-credentials: 'false'
+          output-credentials: 'true'
 
       - name: Read Cloudflare deploy token from SSM
+        id: cloudflare-token
         env:
           SSM_TOKEN_PATH: ${{ inputs.ssm_token_path }}
+          AWS_REGION: ${{ inputs.aws_region }}
+          AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
         run: |
           token=$(aws ssm get-parameter --name "$SSM_TOKEN_PATH" --with-decryption --query 'Parameter.Value' --output text)
           echo "::add-mask::$token"
-          echo "CLOUDFLARE_API_TOKEN=$token" >> "$GITHUB_ENV"
+          echo "token=$token" >> "$GITHUB_OUTPUT"
 
       - name: Deploy with wrangler
         env:
+          CLOUDFLARE_API_TOKEN: ${{ steps.cloudflare-token.outputs.token }}
           CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare_account_id }}
           PROJECT_NAME: ${{ inputs.project_name }}
           OUTPUT_DIR: ${{ inputs.output_directory }}
@@ -109,4 +125,4 @@ jobs:
           if [ -n "$DEPLOY_BRANCH" ]; then
             args+=(--branch "$DEPLOY_BRANCH")
           fi
-          npx wrangler@latest "${args[@]}"
+          npx --yes "wrangler@${WRANGLER_VERSION}" "${args[@]}"

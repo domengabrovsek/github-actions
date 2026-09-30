@@ -18,8 +18,8 @@ on:
         description: 'Telegram chat ID to send notifications to'
 
 jobs:
-  # The commit list is fetched inside telegram-notify so this stays a single job.
-  # A separate fetch job billed a second full minute for roughly five seconds of work.
+  # The notify action fetches the commit list, so this stays a single job.
+  # A separate fetch job would bill a second full minute for seconds of work.
   notify:
     uses: domengabrovsek/github-actions/.github/workflows/telegram-notify.yml@main
     with:
