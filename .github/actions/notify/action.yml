@@ -67,10 +67,12 @@ runs:
   using: composite
   steps:
     # pr_opened callers pass no commit list, so the action fetches it here and
-    # the caller stays a single billed job. Needs pull-requests: read.
+    # the caller stays a single billed job. Needs pull-requests: read. The list
+    # is extra detail, so a failed fetch still sends the message without it.
     - name: Get PR commits
       id: get-commits
       if: inputs.event_type == 'pr_opened' && inputs.commits == '' && github.event.pull_request
+      continue-on-error: true
       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         result-encoding: string
