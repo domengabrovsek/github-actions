@@ -3,7 +3,7 @@
 # ==============================================
 # Reusable workflow for CI/CD workflow run status notifications
 # Note: workflow_run triggers are repo-specific, so consumers
-# must define their own trigger workflow (see README for example)
+# must define their own trigger workflow (see docs/workflows/notifications.md)
 
 name: CI Status Notification
 
