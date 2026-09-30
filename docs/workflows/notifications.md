@@ -131,7 +131,7 @@ The same message sent as the last step of a deploy job that already runs. The ac
 
 **`event_type` values:** `pr_opened`, `pr_updated`, `pr_merged`, `pr_closed`, `pr_review_requested`, `pr_commented`, `pr_review_comment`, `pr_review`, `ci_status`, `deploy_started`, `deploy_success`, `deploy_failure`, `terraform_started`, `terraform_result`, `drift`.
 
-**Data inputs** (all optional; the formatter renders the subset relevant to the event and omits empties): `status`, `title`, `actor`, `reviewer`, `branch_head`, `branch_base`, `file`, `body`, `commits`, `trigger`, `commit`, `stacks`, `link`.
+**Data inputs** (all optional; the formatter renders the subset relevant to the event and omits empties): `status`, `title`, `actor`, `reviewer`, `branch_head`, `branch_base`, `file`, `body`, `commits`, `trigger`, `commit`, `stacks`, `link`, `site`.
 
 `trigger` takes a raw event name and renders a label: `workflow_dispatch` shows as Manual, and `schedule`, `push`, `pull_request` and `release` as Automatic (scheduled), (push), (pull request) and (release). An event outside that map shows as Automatic (`<event>`) (`.github/actions/notify/action.yml:113-122`).
 

@@ -87,6 +87,10 @@ on:
         required: false
         type: string
         description: 'Primary URL; label (Pull request / Workflow / Run) chosen from event_type'
+      site:
+        required: false
+        type: string
+        description: 'Deployed site URL (deploy events)'
 
 jobs:
   # Thin wrapper around the notify composite action. The message builder lives in
@@ -114,3 +118,4 @@ jobs:
           commit: ${{ inputs.commit }}
           stacks: ${{ inputs.stacks }}
           link: ${{ inputs.link }}
+          site: ${{ inputs.site }}
