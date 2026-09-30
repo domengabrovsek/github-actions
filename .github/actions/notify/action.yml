@@ -62,6 +62,9 @@ inputs:
   link:
     required: false
     description: 'Primary URL; label (Pull request / Workflow / Run) chosen from event_type'
+  site:
+    required: false
+    description: 'Deployed site URL (deploy events)'
 
 runs:
   using: composite
@@ -112,6 +115,7 @@ runs:
         COMMIT: ${{ inputs.commit }}
         STACKS: ${{ inputs.stacks }}
         LINK: ${{ inputs.link }}
+        SITE: ${{ inputs.site }}
       with:
         result-encoding: string
         script: |
@@ -128,6 +132,7 @@ runs:
           const commit = e.COMMIT || '';
           const stacks = e.STACKS || '';
           const link = e.LINK || '';
+          const site = e.SITE || '';
 
           let body = e.BODY || '';
           if (body.length > 300) {
@@ -220,6 +225,7 @@ runs:
             link_pr: link && `🔗 Pull request: ${link}`,
             link_wf: link && `🔗 Workflow: ${link}`,
             link_run: link && `🔗 Run: ${link}`,
+            site: site && `🌐 Site: ${site}`,
             commits: commits && `📋 Commits:\n${commits}`,
           };
 
@@ -233,9 +239,9 @@ runs:
             pr_review_comment: ['title', 'author', 'file', 'body', 'repository', 'link_pr'],
             pr_review: ['title', 'review_by', 'repository', 'link_pr'],
             ci_status: ['repository', 'ref', 'trigger', 'actor', 'link_wf'],
-            deploy_started: ['repository', 'ref', 'actor', 'commit', 'link_run'],
-            deploy_success: ['repository', 'ref', 'actor', 'commit', 'link_run'],
-            deploy_failure: ['repository', 'ref', 'actor', 'commit', 'link_run'],
+            deploy_started: ['repository', 'ref', 'actor', 'commit', 'site', 'link_run'],
+            deploy_success: ['repository', 'ref', 'actor', 'commit', 'site', 'link_run'],
+            deploy_failure: ['repository', 'ref', 'actor', 'commit', 'site', 'link_run'],
             terraform_started: ['repository', 'ref', 'stacks', 'actor', 'commit', 'link_wf'],
             terraform_result: ['repository', 'ref', 'actor', 'commit', 'link_wf'],
             drift: ['repository', 'link_wf'],
