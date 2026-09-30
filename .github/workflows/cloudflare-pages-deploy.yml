@@ -70,8 +70,8 @@ on:
         default: ''
         description: 'Deploy branch passed to wrangler (blank lets wrangler infer production vs preview)'
 
-# Pinned so a new wrangler release cannot run with the Cloudflare token
-# before it is reviewed here. Bump it in this one place.
+# Pins wrangler itself; npx has no lockfile, so its dependencies still resolve
+# at run time. Bump it in this one place.
 env:
   WRANGLER_VERSION: 4.144.0
 

@@ -41,4 +41,4 @@ jobs:
 - Installs via the [`setup-node-npm`](../actions/setup-node-npm.md) composite (hardened `npm ci`) and configures AWS through the [`aws-credentials`](../actions/aws-credentials.md) wrapper.
 - The build runs before AWS credentials are configured, so build scripts never see the AWS session or the Cloudflare token.
 - The AWS keys go only to the SSM read step, and the Cloudflare token, masked, goes only to the deploy step. Neither is exported to the job environment (`cloudflare-pages-deploy.yml`, steps `Configure AWS credentials` through `Deploy with wrangler`).
-- The deploy runs wrangler at the version pinned in the workflow's `WRANGLER_VERSION` env, so a new wrangler release never runs with the token until it is bumped here.
+- The deploy runs wrangler at the version pinned in the workflow's `WRANGLER_VERSION` env. `npx` installs it without a lockfile, so only wrangler itself is pinned. Its dependencies resolve at run time and run with the token in their environment.
