@@ -22,4 +22,4 @@ steps:
 
 - Pins `markdownlint-cli2-action` to a single SHA in [`.github/actions/markdownlint/action.yml`](../../.github/actions/markdownlint/action.yml).
 - Needs a prior checkout step.
-- Pinned to v24. Repos coming from v19 or older may see new failures from rule MD060 (table column style).
+- Pinned to v24. A new major can add lint rules, so a repo moving from an older major may see new failures.

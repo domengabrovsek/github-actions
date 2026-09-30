@@ -17,12 +17,12 @@ steps:
 
 | Input | Default | Description |
 |-------|---------|-------------|
-| `prompt` | none | Instructions for Claude. Empty uses the triggering event's context. |
-| `claude_args` | none | Extra Claude Code CLI arguments, such as `--model` or `--allowedTools`. |
-| `claude_code_oauth_token` | none | Pro/Max OAuth token from `claude setup-token`. |
-| `anthropic_api_key` | none | Anthropic API key, the alternative to the OAuth token. |
-| `github_token` | none | GitHub token for comments. Empty uses the Claude GitHub App. |
-| `allowed_non_write_users` | none | Usernames allowed without write access, or `*`. Needs `github_token`. |
+| `prompt` | `''` | Instructions for Claude. Empty uses the triggering event's context. |
+| `claude_args` | `''` | Extra Claude Code CLI arguments, such as `--model`, `--allowedTools`, `--disallowedTools`, or `--json-schema`. |
+| `claude_code_oauth_token` | `''` | Pro/Max OAuth token from `claude setup-token`. |
+| `anthropic_api_key` | `''` | Anthropic API key, the alternative to the OAuth token. |
+| `github_token` | `''` | GitHub token for comments and API calls. Empty uses the Claude GitHub App through OIDC, which needs `id-token: write` on the job. |
+| `allowed_non_write_users` | `''` | Comma-separated usernames allowed without write access, or `*`. Needs `github_token`. |
 
 ## Outputs
 

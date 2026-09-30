@@ -39,3 +39,6 @@ jobs:
 ## Notes
 
 - Installs via the [`setup-node-npm`](../actions/setup-node-npm.md) composite (hardened `npm ci`) and configures AWS through the [`aws-credentials`](../actions/aws-credentials.md) wrapper.
+- The build runs before AWS credentials are configured, so build scripts never see the AWS session or the Cloudflare token.
+- The token is read from SSM, masked, and exported as `CLOUDFLARE_API_TOKEN` for the deploy step (`cloudflare-pages-deploy.yml:93-99`).
+- The deploy runs `npx wrangler@latest`, so the wrangler version is not pinned (`cloudflare-pages-deploy.yml:112`).

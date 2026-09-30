@@ -34,4 +34,4 @@ steps:
 ## Notes
 
 - Pins `upload-artifact` to a single SHA in [`.github/actions/upload-artifact/action.yml`](../../.github/actions/upload-artifact/action.yml).
-- Pinned to v7. Repos on v4 should test on adoption - artifact v5+ carried breaking changes (immutable artifacts, no re-upload to the same name).
+- Pinned to v7. A repo moving from an older major should read the [upstream releases](https://github.com/actions/upload-artifact/releases) before adopting it.

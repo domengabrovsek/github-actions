@@ -1,10 +1,14 @@
 # `security-scan.yml`
 
-Bundles the two scans copy-pasted across repos:
+Runs three scanners:
 
-- **Gitleaks** - secret detection over full history.
-- **Bearer** - SAST, fails on high-severity findings and reports the rest.
-- **Trivy** - Terraform/OpenTofu misconfiguration scan, opt-in via `iac_scan`.
+| Scanner | Checks | Job |
+| --- | --- | --- |
+| Gitleaks | Secrets, over full history | `Scan (gitleaks, bearer)` |
+| Bearer | SAST. Fails on `fail_severity`, reports `warn_severity`. | `Scan (gitleaks, bearer)` |
+| Trivy | Terraform/OpenTofu misconfiguration. Opt-in via `iac_scan`. | `IaC Scan (trivy)` |
+
+Gitleaks and Bearer share one job because GitHub bills each job for at least one minute and both finish in seconds. A Gitleaks finding fails the job before Bearer runs (`security-scan.yml:54-58`).
 
 ```yaml
 name: Security

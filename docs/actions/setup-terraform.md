@@ -23,5 +23,5 @@ steps:
 ## Notes
 
 - Pins `setup-terraform` to a single SHA in [`.github/actions/setup-terraform/action.yml`](../../.github/actions/setup-terraform/action.yml).
-- The credentials block is written only when hostname and token are both set, so the empty defaults are a no-op.
-- The upstream action runs on `node24`, which needs GitHub Actions runner v2.327.1 or later. Self-hosted runners below that will fail to start the step.
+- Upstream writes the credentials block only when hostname and token are both set, so the empty defaults are a no-op.
+- Upstream runs on `node24`, which needs GitHub Actions runner v2.327.1 or later. Self-hosted runners below that will fail to start the step.
