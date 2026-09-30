@@ -95,7 +95,7 @@ The builder has two entry points, and both render the same message:
 | `telegram-notify.yml` reusable workflow | You need a whole job, for example as a handler or after other jobs finish | One extra job, billed at least one minute |
 | `domengabrovsek/github-actions/.github/actions/notify@main` step | A job that already runs can send the message as its last step | No extra job |
 
-Both take the same inputs. Mind the names: the `telegram-notify.yml` workflow wraps the `notify` action, not the `telegram-notify` action described [below](#caller-titled-sender-telegram-notify-action). The workflow is a one-job wrapper around the action (`telegram-notify.yml:92-99`). Formatting and sending share that one job, because GitHub bills every job for at least one minute.
+Both take the same inputs. The workflow is a one-job wrapper around the action (`telegram-notify.yml:92-99`). Formatting and sending share that one job, because GitHub bills every job for at least one minute.
 
 The PR and CI handlers above call the workflow for you. Call it directly for deploy and terraform events, which have no dedicated handler. This example runs on `push`, the only event that sets `github.event.head_commit`:
 
@@ -153,20 +153,3 @@ with:
   api_url: ${{ vars.TELEGRAM_API_URL }}
   chat_id: ${{ vars.TELEGRAM_CHAT_ID }}
 ```
-
-## Caller-titled sender (`telegram-notify` action)
-
-`.github/actions/telegram-notify` is a separate composite action that does not use the formatter. The caller passes the header line as `title`, and the action appends fields read from the run's `github` context:
-
-| Input | Default | Description |
-|-------|---------|-------------|
-| `title` | required | First line of the message, including any emoji. |
-| `api_url` | required | Telegram API webhook URL. |
-| `chat_id` | required | Chat ID to send to. |
-| `site_url` | `''` | Adds a Site line when set. |
-| `show_branch` | `true` | Adds the ref name. |
-| `show_author` | `true` | Adds `github.actor`. |
-| `show_commit` | `true` | Adds the short SHA and the head commit subject. |
-
-Every message also gets the Repository and Workflow run links. The send ignores errors (`|| true`), so a failed send never fails the job (`.github/actions/telegram-notify/action.yml:79-84`). Because the caller writes the header, its messages can differ from the formatter's layout. New callers use the `notify` action, which keeps every message in one layout.
-

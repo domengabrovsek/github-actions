@@ -32,7 +32,6 @@ Building blocks for your own jobs. See [`docs/actions/`](docs/actions).
 | `markdownlint` | Centrally-pinned wrapper for `markdownlint-cli2-action` | [docs](docs/actions/markdownlint.md) |
 | `claude-code` | Centrally-pinned wrapper for `anthropics/claude-code-action` | [docs](docs/actions/claude-code.md) |
 | `notify` | Renders and sends the standard Telegram message as a step | [docs](docs/workflows/notifications.md) |
-| `telegram-notify` | Sends a Telegram message with a caller-written header | [docs](docs/workflows/notifications.md) |
 
 ## Reusable workflows
 
