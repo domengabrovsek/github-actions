@@ -6,10 +6,8 @@
 # emoji, labels, field order, header, spacing, body truncation, and the
 # derived Repository line. No other workflow builds a message body.
 #
-# Self-contained (formats AND sends) on purpose: GitHub caps nested reusable
-# workflows at 4 levels, and the notification chain is already
-# consumer -> notify.yml -> handler -> here. Delegating the send to a further
-# reusable workflow would make it 5 levels and fail to run.
+# Formats and sends in one job on purpose: GitHub bills every job for at least
+# one minute, so a separate send job would double the cost of each message.
 
 name: Telegram Notify
 

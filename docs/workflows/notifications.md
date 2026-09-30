@@ -95,7 +95,7 @@ The builder has two entry points, and both render the same message:
 | `telegram-notify.yml` reusable workflow | You need a whole job, for example as a handler or after other jobs finish | One extra job, billed at least one minute |
 | `domengabrovsek/github-actions/.github/actions/notify@main` step | A job that already runs can send the message as its last step | No extra job |
 
-Both take the same inputs. Mind the names: the `telegram-notify.yml` workflow wraps the `notify` action, not the `telegram-notify` action described [below](#caller-titled-sender-telegram-notify-action). The workflow is a one-job wrapper around the action (`telegram-notify.yml:94-101`). It formats and sends in one workflow because the PR chain already uses GitHub's four nesting levels (`telegram-notify.yml:9-12`).
+Both take the same inputs. Mind the names: the `telegram-notify.yml` workflow wraps the `notify` action, not the `telegram-notify` action described [below](#caller-titled-sender-telegram-notify-action). The workflow is a one-job wrapper around the action (`telegram-notify.yml:92-99`). Formatting and sending share that one job, because GitHub bills every job for at least one minute.
 
 The PR and CI handlers above call the workflow for you. Call it directly for deploy and terraform events, which have no dedicated handler. This example runs on `push`, the only event that sets `github.event.head_commit`:
 

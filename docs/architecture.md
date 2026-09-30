@@ -70,7 +70,7 @@ flowchart LR
 
 The diagram shows who calls whom. [README.md](../README.md) lists every workflow and action with a one-line summary, and the eight `pr-*.yml` handlers are listed in [notifications](workflows/notifications.md#events).
 
-The notification chain is the deepest. It runs the consumer's workflow, `notify.yml`, a `pr-*.yml` handler, `telegram-notify.yml`, then the `notify` composite action. GitHub allows four levels of workflows, counting the caller's top-level workflow, and this chain uses all four (`.github/workflows/telegram-notify.yml:9-12`). No reusable workflow can be added below `telegram-notify.yml`, which is why it formats and sends the message itself. Composite actions do not count as a level. Wrappers not shown in the diagram (`setup-opentofu`, `setup-terraform`, `upload-artifact`, `download-artifact`, `markdownlint`) have no caller in this repo. Consumer repos use them directly.
+The notification chain is the deepest. It runs the consumer's workflow, `notify.yml`, a `pr-*.yml` handler, `telegram-notify.yml`, then the `notify` composite action. That is four levels of workflows, counting the caller's top-level workflow, out of the ten GitHub allows ([GitHub docs](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#nesting-reusable-workflows)). `telegram-notify.yml` formats and sends in one job, because GitHub bills every job for at least one minute and a separate send job would double the cost of each message. Wrappers not shown in the diagram (`setup-opentofu`, `setup-terraform`, `upload-artifact`, `download-artifact`, `markdownlint`) have no caller in this repo. Consumer repos use them directly.
 
 ## Design decisions
 
