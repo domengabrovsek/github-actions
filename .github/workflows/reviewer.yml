@@ -317,21 +317,24 @@ jobs:
               else
                 tail -n +2 <<< "$ON_HEAD" | while read -r EXTRA_ID; do
                   gh api -X PUT "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews/$EXTRA_ID/dismissals" \
-                    -f message="Duplicate approval." -f event=DISMISS --silent
+                    -f message="Duplicate approval." -f event=DISMISS --silent ||
+                    echo "::warning::Review $EXTRA_ID was already dismissed."
                 done
               fi
             else
               while read -r REVIEW_ID _; do
                 [ -n "$REVIEW_ID" ] || continue
                 gh api -X PUT "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews/$REVIEW_ID/dismissals" \
-                  -f message="New review comments are open." -f event=DISMISS --silent
+                  -f message="New review comments are open." -f event=DISMISS --silent ||
+                  echo "::warning::Review $REVIEW_ID was already dismissed."
               done <<< "$APPROVALS"
             fi
           }
           # Approval decisions from overlapping runs are not serialized, so each
           # run decides twice. The second pass sees any write that landed in
           # between: open threads withdraw every approval, and a second approval
-          # of the same commit is dismissed.
+          # of the same commit is dismissed. Both runs may dismiss the same review,
+          # so a failed dismissal only warns.
           decide
           decide
 
