@@ -10,7 +10,7 @@ The repo has three kinds of files. A caller can use any action or reusable workf
 | --- | --- | --- | --- |
 | Composite action | `.github/actions/<name>/action.yml` | As a step: `steps: - uses: domengabrovsek/github-actions/.github/actions/<name>@main` | [`docs/actions/`](actions) |
 | Reusable workflow | `.github/workflows/<name>.yml` with `on: workflow_call` | As a whole job: `jobs.<id>.uses: domengabrovsek/github-actions/.github/workflows/<name>.yml@main` | [`docs/workflows/`](workflows) |
-| This repo's own workflow | `pull-request.yml`, `review.yml`, `notifications.yml` | Runs on this repo's own events. Nothing calls it. | This page |
+| This repo's own workflow | `pull-request.yml`, `review.yml` | Runs on this repo's own events. Nothing calls it. | This page |
 
 Composite actions come in three groups:
 
@@ -20,12 +20,14 @@ Composite actions come in three groups:
 
 ## How the parts connect
 
-Reusable workflows call composite actions by their `@main` path, and composite actions call each other the same way. The only local (`./`) reference is `.github/workflows/notifications.yml:34`.
+Reusable workflows call composite actions by their `@main` path, and composite actions call each other the same way. Nothing under `.github/` uses a local (`./`) reference.
+
+This repo does not call `notify.yml` itself. A GitHub repo webhook, managed by the home-infra repo's github stack, sends its PR, review and comment events to the telegram-notify-bot Lambda, which posts the Telegram messages. That path sends no ping for pushes to an open PR (`synchronize`).
 
 ```mermaid
 flowchart LR
   consumer["Consumer repo workflow"]
-  self["This repo: notifications.yml, review.yml"]
+  self["This repo: review.yml"]
 
   subgraph workflows["Reusable workflows"]
     notify["notify.yml (router)"]
@@ -53,7 +55,6 @@ flowchart LR
   consumer --> scan
   consumer --> deploy
   consumer --> reviewer
-  self --> notify
   self --> reviewer
 
   notify --> handlers --> formatter --> a_notify
@@ -82,7 +83,7 @@ The notification chain is the deepest. It runs the consumer's workflow, `notify.
 | Checks share one job where possible | GitHub bills every job for at least one minute. `node-ci.yml` runs every check as a step in one job. `security-scan.yml` runs gitleaks and Bearer in one job. The `notify` action lets a job that already exists send a message without starting a second job. | `.github/workflows/node-ci.yml:4-9`, `.github/workflows/security-scan.yml:54-58`, `.github/actions/notify/action.yml:2-5` |
 | Tokens come from AWS SSM through OIDC, not repo secrets | No repo stores the Claude or Cloudflare token. A job assumes an AWS role and reads the token at run time. | `.github/workflows/reviewer.yml:13-18`, `.github/workflows/cloudflare-pages-deploy.yml:4-6` |
 | One formatter renders every Telegram message | Callers pass typed fields and pick a layout with `event_type`. No input takes a whole message body, so every message gets the same header, labels and field order, and a layout change is one edit. | `.github/workflows/telegram-notify.yml:1-7`, [notifications](workflows/notifications.md#formatter-telegram-notifyyml-and-the-notify-action) |
-| Notifications use `pull_request_target` in this repo | Fork PRs cannot read `vars.*` under `pull_request`. This is safe because no job in the chain checks out or runs PR code. | `.github/workflows/notifications.yml:7-13` |
+| Notification callers may use `pull_request_target` | Fork PRs cannot read `vars.*` under `pull_request`. This is safe because no job in the chain checks out or runs PR code. | `docs/workflows/notifications.md:44` |
 | `review.yml` calls `reviewer.yml@main`, not `./` | The `github-reviewer` AWS role trusts only `reviewer.yml` from `main`. A local call on a pull request would present the PR ref. | `.github/workflows/review.yml:4-6` |
 | Every managed repo has a check named `Gate` | The home-infra repo manages branch protection for a set of repos (the managed repos) and requires one `Gate` check in each. This repo has no CI of its own, so its `Gate` always passes. `node-ci.yml` has no gate, because consumers add it to their own `Gate` job. | `.github/workflows/pull-request.yml:3-5`, `.github/workflows/node-ci.yml:12-13` |
 | Extra checks are opt-in | `actionlint` defaults to `false`, so repos with existing warnings keep passing. `iac_scan` defaults to `false`, because most consumers ship no IaC. | `.github/workflows/node-ci.yml:89`, `.github/workflows/security-scan.yml:85-86` |
@@ -94,7 +95,7 @@ A pull request here runs almost none of the code it changes:
 
 - `pull-request.yml` only echoes a message. No lint or test runs on this repo.
 - `review.yml` calls `reviewer.yml@main`, so the review uses the merged version.
-- `notifications.yml` calls the local `notify.yml`. On `pull_request_target` and `issue_comment` events that is the base branch's version. On `pull_request_review` and `pull_request_review_comment` events GitHub runs the PR's merge ref, so a review on a same-repo PR that edits `notify.yml` runs the changed router (`.github/workflows/notifications.yml:17-34`). The router calls the handlers at `@main` either way.
+- No workflow here calls `notify.yml`, the handlers or `telegram-notify.yml`, so a pull request never runs the notification chain.
 
 A change therefore takes effect for every consumer when it merges. To try it first, point a test job in a consumer repo at your branch, for example `uses: domengabrovsek/github-actions/.github/workflows/node-ci.yml@<branch>`. Calls inside that workflow still resolve to `@main`, so only the top-level file runs from your branch. To test a nested file, call it directly at your branch: for example a `pr-*.yml` handler or `telegram-notify.yml` as a job, or a composite action such as `notify` as a step. `reviewer.yml` cannot run from a branch, because its AWS role trusts only `main`.
 
