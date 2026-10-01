@@ -43,13 +43,12 @@ jobs:
 
 | Job | Runs on | Does | Permissions |
 | --- | --- | --- | --- |
-| `Review` | `pull_request`, or `pull_request_target` with the `safe-to-review` label | Reviews the whole diff and posts inline comments | `contents: read`, `pull-requests: write`, `id-token: write` |
-| `Post review replies` | After `Review` | Posts Claude's replies to earlier threads and reopens them | `contents: write`, `pull-requests: write` |
+| `Review` | `pull_request`, or `pull_request_target` with the `safe-to-review` label | Reviews the whole diff, posts inline comments, and approves when it returned no follow-ups and no Claude thread is open | `contents: read`, `pull-requests: write`, `id-token: write` |
+| `Post review replies` | After `Review` | Posts Claude's replies to earlier threads, reopens them, then makes the approval decision | `contents: write`, `pull-requests: write` |
 | `Reply` | `pull_request_review_comment` from the owner on a same-repo PR | Drafts a reply in a thread Claude started | `contents: read`, `pull-requests: read`, `id-token: write` |
-| `Post reply` | After `Reply` | Posts the reply and resolves the thread when Claude judges it settled | `contents: write`, `pull-requests: write` |
-| `Approve` | After a review or reply round | Approves when no Claude thread is open | `contents: read`, `pull-requests: write` |
+| `Post reply` | After `Reply` | Posts the reply, resolves the thread when Claude judges it settled, then makes the approval decision | `contents: write`, `pull-requests: write` |
 
-Each job sets its own permissions, and the caller's grant is the ceiling. The caller grants `contents: write` only because GitHub requires it to resolve or reopen a review thread. The two reply-posting jobs are the only ones that get it. They run no PR code and never see the Claude token. The jobs that hold the token keep `contents: read`.
+Each job sets its own permissions, and the caller's grant is the ceiling. The caller grants `contents: write` only because GitHub requires it to resolve or reopen a review thread. The two reply-posting jobs are the only ones that get it. They run no PR code and never see the Claude token. The jobs that hold the token keep `contents: read`. The approval decision runs as the last step of whichever job ends the run, so a review with no follow-ups bills one job instead of two.
 
 ## Onboarding a repo
 
@@ -68,5 +67,5 @@ Each job sets its own permissions, and the caller's grant is the ceiling. The ca
 - Draft PRs get no review until they are ready.
 - Claude answers only the owner's replies, only in threads Claude started, and stops after five replies in one thread.
 - A fork review fails when the PR head moved past the labeled commit, because Claude's comments land on the live head. Add the label again to review the new push.
-- The approval is pinned to the reviewed commit. On a same-repo PR each push starts a new review of the whole diff. Branch protection on managed repos dismisses stale approvals, so the push clears the old approval (`.github/workflows/reviewer.yml:10-11`). In a caller repo without that rule, the old approval stays and still counts toward merge. On a fork PR a push starts no review until the owner adds the label again. When a review opens or reopens a thread, the `Approve` job dismisses Claude's standing approvals and approves again once no thread is open (`.github/workflows/reviewer.yml:9-11`, `.github/workflows/reviewer.yml:23-25`).
+- The approval is pinned to the reviewed commit. On a same-repo PR each push starts a new review of the whole diff. Branch protection on managed repos dismisses stale approvals, so the push clears the old approval (`.github/workflows/reviewer.yml:10-11`). In a caller repo without that rule, the old approval stays and still counts toward merge. On a fork PR a push starts no review until the owner adds the label again. When a review opens or reopens a thread, the approval step dismisses Claude's standing approvals and approves again once no thread is open (`.github/workflows/reviewer.yml:9-11`, `.github/workflows/reviewer.yml:23-25`).
 - Private repos spend Actions minutes on each review.
