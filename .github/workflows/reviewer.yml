@@ -21,6 +21,9 @@
 # checklist, read from main, plus the caller repo's own AGENTS.md or
 # CLAUDE.md.
 #
+# Pull requests opened by bots, such as Dependabot, get no review, because
+# claude-code-action refuses to run for a bot actor.
+#
 # Each push starts a new review of the whole diff, so the approval always
 # covers the latest commit. Claude sees its earlier threads and does not
 # raise a point twice.
@@ -110,6 +113,7 @@ jobs:
     if: >-
       (github.event_name == 'pull_request' &&
        !github.event.pull_request.draft &&
+       github.event.pull_request.user.type != 'Bot' &&
        github.event.pull_request.head.repo.full_name == github.repository) ||
       (github.event_name == 'pull_request_target' &&
        github.event.label.name == 'safe-to-review' &&
