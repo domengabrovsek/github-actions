@@ -59,7 +59,7 @@ The router (`notify.yml`) dispatches PR events to the first eight handlers below
 | `pr-review-requested.yml` | Review requested | 👋 |
 | `ci-status.yml` | Watched workflow completed | ✅ success, ❌ failure, ⚠️ cancelled, ⏰ timed out, ⏭️ skipped |
 
-All handlers take the same two inputs, `api_url` and `chat_id`.
+All handlers take `api_url` and `chat_id`, plus an optional `runs-on`: runner labels as JSON, such as `${{ vars.CI_RUNNER }}`. It defaults to `ubuntu-latest` and passes through to `telegram-notify`.
 
 ### CI status
 
