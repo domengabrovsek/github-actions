@@ -65,6 +65,9 @@ jobs:
   scan:
     name: Scan (gitleaks, bearer)
     runs-on: ${{ fromJSON(inputs.runs-on || '"ubuntu-latest"') }}
+    # A clean scan takes under a minute. If bearer's main process dies, its workers
+    # keep the output pipe open and the step hangs until the job timeout.
+    timeout-minutes: 10
     permissions:
       contents: read
       # gitleaks-action lists PR commits on pull_request events; without this it 403s.
