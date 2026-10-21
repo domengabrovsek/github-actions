@@ -34,7 +34,7 @@ jobs:
 | `actionlint` | `false` | Lint `.github/workflows` with actionlint. Off by default. |
 | `node-version-file` | `.nvmrc` | File that pins the Node version. |
 | `install-args` | `''` | Extra args appended to the baseline `npm ci --ignore-scripts --no-audit --no-fund`. |
-| `runs-on` | `ubuntu-latest` | Runner label(s) for the `Checks` and `Actionlint` jobs. |
+| `runs-on` | `'"ubuntu-latest"'` | Runner labels as JSON for the `Checks` and `Actionlint` jobs, e.g. `'["self-hosted","air"]'`. Pass `${{ vars.CI_RUNNER }}`. Empty falls back to `ubuntu-latest`. |
 
 ## Notes
 

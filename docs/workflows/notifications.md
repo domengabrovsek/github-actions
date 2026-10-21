@@ -45,7 +45,7 @@ jobs:
 
 ## Events
 
-The router (`notify.yml`) dispatches PR events to the first eight handlers below. It skips comments and reviews written by bots (`notify.yml:86-104`). `ci-status.yml` is not routed; it needs its own trigger (see [CI status](#ci-status)). Each handler also works on its own if you only want one notification.
+The router (`notify.yml`) dispatches PR events to the first eight handlers below. It skips comments and reviews written by bots (`notify.yml:96-117`). `ci-status.yml` is not routed; it needs its own trigger (see [CI status](#ci-status)). Each handler also works on its own if you only want one notification.
 
 | Handler | Event | Header emoji |
 |---------|-------|-------|
@@ -59,7 +59,7 @@ The router (`notify.yml`) dispatches PR events to the first eight handlers below
 | `pr-review-requested.yml` | Review requested | 👋 |
 | `ci-status.yml` | Watched workflow completed | ✅ success, ❌ failure, ⚠️ cancelled, ⏰ timed out, ⏭️ skipped |
 
-All handlers take the same two inputs, `api_url` and `chat_id`.
+All handlers take `api_url` and `chat_id`, plus an optional `runs-on`: runner labels as JSON, such as `${{ vars.CI_RUNNER }}`. It defaults to `ubuntu-latest` and passes through to `telegram-notify`.
 
 ### CI status
 
@@ -95,7 +95,7 @@ The builder has two entry points, and both render the same message:
 | `telegram-notify.yml` reusable workflow | You need a whole job, for example as a handler or after other jobs finish | One extra job, billed at least one minute |
 | `domengabrovsek/github-actions/.github/actions/notify@main` step | A job that already runs can send the message as its last step | No extra job |
 
-Both take the same inputs. The workflow is a one-job wrapper around the action (`telegram-notify.yml:92-99`). Formatting and sending share that one job, because GitHub bills every job for at least one minute.
+Both take the same message inputs, and the workflow adds `runs-on`. The workflow is a one-job wrapper around the action (`telegram-notify.yml:104-126`). Formatting and sending share that one job, because GitHub bills every job for at least one minute.
 
 The PR and CI handlers above call the workflow for you. Call it directly for deploy and terraform events, which have no dedicated handler. This example runs on `push`, the only event that sets `github.event.head_commit`:
 

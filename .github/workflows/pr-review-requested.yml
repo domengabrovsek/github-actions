@@ -16,11 +16,17 @@ on:
         required: true
         type: string
         description: 'Telegram chat ID to send notifications to'
+      runs-on:
+        required: false
+        type: string
+        default: '"ubuntu-latest"'
+        description: 'Runner labels as JSON, e.g. ["self-hosted","air"]; pass vars.CI_RUNNER'
 
 jobs:
   notify:
     uses: domengabrovsek/github-actions/.github/workflows/telegram-notify.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
       event_type: pr_review_requested

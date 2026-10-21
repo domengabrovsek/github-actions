@@ -42,6 +42,11 @@ on:
         required: true
         type: string
         description: 'Telegram chat ID to send notifications to'
+      runs-on:
+        required: false
+        type: string
+        default: '"ubuntu-latest"'
+        description: 'Runner labels as JSON, e.g. ["self-hosted","air"]; pass vars.CI_RUNNER'
 
 jobs:
   # ---- Pull Request Events ----
@@ -50,6 +55,7 @@ jobs:
     if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'opened'
     uses: domengabrovsek/github-actions/.github/workflows/pr-opened.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
@@ -57,6 +63,7 @@ jobs:
     if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'synchronize'
     uses: domengabrovsek/github-actions/.github/workflows/pr-updated.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
@@ -64,6 +71,7 @@ jobs:
     if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'closed' && github.event.pull_request.merged == true
     uses: domengabrovsek/github-actions/.github/workflows/pr-merged.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
@@ -71,6 +79,7 @@ jobs:
     if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'closed' && github.event.pull_request.merged == false
     uses: domengabrovsek/github-actions/.github/workflows/pr-closed.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
@@ -78,6 +87,7 @@ jobs:
     if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && github.event.action == 'review_requested'
     uses: domengabrovsek/github-actions/.github/workflows/pr-review-requested.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
@@ -88,6 +98,7 @@ jobs:
     if: github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.user.type != 'Bot'
     uses: domengabrovsek/github-actions/.github/workflows/pr-commented.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
@@ -95,6 +106,7 @@ jobs:
     if: github.event_name == 'pull_request_review_comment' && github.event.comment.user.type != 'Bot'
     uses: domengabrovsek/github-actions/.github/workflows/pr-review-comment.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}
 
@@ -104,5 +116,6 @@ jobs:
     if: github.event_name == 'pull_request_review' && github.event.review.user.type != 'Bot'
     uses: domengabrovsek/github-actions/.github/workflows/pr-review.yml@main
     with:
+      runs-on: ${{ inputs.runs-on }}
       api_url: ${{ inputs.api_url }}
       chat_id: ${{ inputs.chat_id }}

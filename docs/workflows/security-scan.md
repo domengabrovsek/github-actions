@@ -8,7 +8,7 @@ Runs three scanners:
 | Bearer | SAST. Fails on `fail_severity`, reports `warn_severity`. | `Scan (gitleaks, bearer)` |
 | Trivy | Terraform/OpenTofu misconfiguration. Opt-in via `iac_scan`. | `IaC Scan (trivy)` |
 
-Gitleaks and Bearer share one job because GitHub bills each job for at least one minute and both finish in seconds. A Gitleaks finding fails the job before Bearer runs (`security-scan.yml:54-58`).
+Gitleaks and Bearer share one job because GitHub bills each job for at least one minute and both finish in seconds. A Gitleaks finding fails the job before Bearer runs (`security-scan.yml:59-63`).
 
 ```yaml
 name: Security
@@ -36,6 +36,7 @@ jobs:
 | `warn_severity` | `medium,low,warning` | Bearer severities reported without failing. |
 | `iac_scan` | `false` | Run the Trivy IaC config scan and publish its SARIF to code scanning. |
 | `iac_path` | `terraform` | Directory scanned when `iac_scan` is enabled. |
+| `runs-on` | `'"ubuntu-latest"'` | Runner labels as JSON for both jobs, e.g. `'["self-hosted","air"]'`. Pass `${{ vars.CI_RUNNER }}`. Empty falls back to `ubuntu-latest`. |
 
 ## Notes
 
