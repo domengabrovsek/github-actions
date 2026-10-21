@@ -8,7 +8,7 @@ Runs three scanners:
 | Bearer | SAST. Fails on `fail_severity`, reports `warn_severity`. | `Scan (gitleaks, bearer)` |
 | Trivy | Terraform/OpenTofu misconfiguration. Opt-in via `iac_scan`. | `IaC Scan (trivy)` |
 
-Gitleaks and Bearer share one job because GitHub bills each job for at least one minute and both finish in seconds. A Gitleaks finding fails the job before Bearer runs (`security-scan.yml:54-58`).
+Gitleaks and Bearer share one job because GitHub bills each job for at least one minute and both finish in seconds. A Gitleaks finding fails the job before Bearer runs (`security-scan.yml:59-63`).
 
 ```yaml
 name: Security

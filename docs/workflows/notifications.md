@@ -45,7 +45,7 @@ jobs:
 
 ## Events
 
-The router (`notify.yml`) dispatches PR events to the first eight handlers below. It skips comments and reviews written by bots (`notify.yml:86-104`). `ci-status.yml` is not routed; it needs its own trigger (see [CI status](#ci-status)). Each handler also works on its own if you only want one notification.
+The router (`notify.yml`) dispatches PR events to the first eight handlers below. It skips comments and reviews written by bots (`notify.yml:96-117`). `ci-status.yml` is not routed; it needs its own trigger (see [CI status](#ci-status)). Each handler also works on its own if you only want one notification.
 
 | Handler | Event | Header emoji |
 |---------|-------|-------|
