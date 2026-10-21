@@ -77,6 +77,9 @@ jobs:
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          # The action uploads its SARIF with HOME as the artifact root, and the file
+          # sits in the workspace. Self-hosted runners keep the workspace outside HOME.
+          HOME: ${{ github.workspace }}
       - name: Bearer (fail on high severity)
         uses: bearer/bearer-action@828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc # v2
         with:
