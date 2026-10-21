@@ -50,8 +50,8 @@ on:
       runs-on:
         required: false
         type: string
-        default: 'ubuntu-latest'
-        description: 'Runner label(s) for the check jobs'
+        default: '"ubuntu-latest"'
+        description: 'Runner labels as JSON, e.g. ["self-hosted","air"]; pass vars.CI_RUNNER'
       lint_command:
         required: false
         type: string
@@ -91,7 +91,7 @@ on:
 jobs:
   checks:
     name: Checks
-    runs-on: ${{ inputs.runs-on }}
+    runs-on: ${{ fromJSON(inputs.runs-on || '"ubuntu-latest"') }}
     steps:
       # Install once for the whole job. The former per-check jobs each repeated
       # this npm ci, which was both the slow part and a billed minute apiece.
@@ -166,7 +166,7 @@ jobs:
   actionlint:
     name: Actionlint
     if: inputs.actionlint
-    runs-on: ${{ inputs.runs-on }}
+    runs-on: ${{ fromJSON(inputs.runs-on || '"ubuntu-latest"') }}
     steps:
       - uses: domengabrovsek/github-actions/.github/actions/checkout@main
       - uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0

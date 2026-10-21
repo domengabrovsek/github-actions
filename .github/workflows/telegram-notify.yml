@@ -91,6 +91,11 @@ on:
         required: false
         type: string
         description: 'Deployed site URL (deploy events)'
+      runs-on:
+        required: false
+        type: string
+        default: '"ubuntu-latest"'
+        description: 'Runner labels as JSON, e.g. ["self-hosted","air"]; pass vars.CI_RUNNER'
 
 jobs:
   # Thin wrapper around the notify composite action. The message builder lives in
@@ -98,7 +103,7 @@ jobs:
   # instead of paying for a second billed minute. Both paths render the same message.
   notify:
     name: Format and send
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on || '"ubuntu-latest"') }}
     steps:
       - uses: domengabrovsek/github-actions/.github/actions/notify@main
         with:
