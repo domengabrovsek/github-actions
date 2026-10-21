@@ -14,8 +14,8 @@
 # setup-token`, kept in AWS SSM. A job assumes the github-reviewer role via
 # OIDC and reads it at runtime, so no repo stores the token. The role trusts
 # only repos onboarded in home-infra running this file from main, so callers use
-# @main. Every job runs on GitHub-hosted runners, because the reviewer holds
-# the token while it reads untrusted PR content.
+# @main. Jobs run on the caller's runs-on, GitHub-hosted by default. Fork runs
+# always stay GitHub-hosted, so fork content never reaches a self-hosted runner.
 #
 # Claude checks each change against agent-config's AGENTS.md and review
 # checklist, read from main, plus the caller repo's own AGENTS.md or
@@ -78,6 +78,11 @@ on:
         required: true
         type: string
         description: 'AWS IAM role ARN to assume via OIDC for reading the Claude token'
+      runs-on:
+        required: false
+        type: string
+        default: '"ubuntu-latest"'
+        description: 'Runner labels as JSON, e.g. ["self-hosted","air"]; pass vars.CI_RUNNER. Fork runs ignore it'
 
 permissions:
   contents: read
@@ -121,7 +126,7 @@ jobs:
        github.event.label.name == 'safe-to-review' &&
        github.event.sender.login == github.repository_owner &&
        github.event.pull_request.head.repo.full_name != github.repository)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name != 'pull_request_target' && inputs.runs-on || '"ubuntu-latest"') }}
     timeout-minutes: 20
     permissions:
       contents: read
@@ -349,7 +354,7 @@ jobs:
     name: Post review replies
     needs: review
     if: needs.review.outputs.result != '' && toJSON(fromJSON(needs.review.outputs.result).replies) != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name != 'pull_request_target' && inputs.runs-on || '"ubuntu-latest"') }}
     timeout-minutes: 5
     # Reopening a review thread needs contents: write. This job runs no PR code.
     permissions:
@@ -397,7 +402,7 @@ jobs:
       github.event.comment.in_reply_to_id &&
       github.event.comment.user.login == github.repository_owner &&
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name != 'pull_request_target' && inputs.runs-on || '"ubuntu-latest"') }}
     timeout-minutes: 15
     permissions:
       contents: read
@@ -510,7 +515,7 @@ jobs:
     name: Post reply
     needs: reply-check
     if: needs.reply-check.outputs.result != ''
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name != 'pull_request_target' && inputs.runs-on || '"ubuntu-latest"') }}
     timeout-minutes: 5
     # Resolving a review thread needs contents: write. This job runs no PR code.
     permissions:
