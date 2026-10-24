@@ -14,8 +14,10 @@
 # setup-token`, kept in AWS SSM. A job assumes the github-reviewer role via
 # OIDC and reads it at runtime, so no repo stores the token. The role trusts
 # only repos onboarded in home-infra running this file from main, so callers use
-# @main. Every job runs on GitHub-hosted runners, because the reviewer holds
-# the token while it reads untrusted PR content.
+# @main. The jobs that hold the token run on GitHub-hosted runners, because
+# the reviewer holds it while it reads untrusted PR content. The two jobs that
+# only post finished replies hold no token and run no PR code, so they follow
+# the optional runs-on input.
 #
 # Claude checks each change against agent-config's AGENTS.md and review
 # checklist, read from main, plus the caller repo's own AGENTS.md or
@@ -68,6 +70,7 @@
 #     uses: domengabrovsek/github-actions/.github/workflows/reviewer.yml@main
 #     with:
 #       aws_role_arn: ${{ vars.REVIEWER_ROLE_ARN }}
+#       runs-on: ${{ vars.CI_RUNNER }}
 
 name: Reviewer
 
@@ -78,6 +81,11 @@ on:
         required: true
         type: string
         description: 'AWS IAM role ARN to assume via OIDC for reading the Claude token'
+      runs-on:
+        required: false
+        type: string
+        default: '"ubuntu-latest"'
+        description: 'Runner labels as JSON for the two reply-posting jobs only; pass vars.CI_RUNNER'
 
 permissions:
   contents: read
@@ -349,7 +357,7 @@ jobs:
     name: Post review replies
     needs: review
     if: needs.review.outputs.result != '' && toJSON(fromJSON(needs.review.outputs.result).replies) != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on || '"ubuntu-latest"') }}
     timeout-minutes: 5
     # Reopening a review thread needs contents: write. This job runs no PR code.
     permissions:
@@ -510,7 +518,7 @@ jobs:
     name: Post reply
     needs: reply-check
     if: needs.reply-check.outputs.result != ''
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on || '"ubuntu-latest"') }}
     timeout-minutes: 5
     # Resolving a review thread needs contents: write. This job runs no PR code.
     permissions:
