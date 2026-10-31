@@ -69,6 +69,11 @@ on:
         type: string
         default: ''
         description: 'Deploy branch passed to wrangler (blank lets wrangler infer production vs preview)'
+      runs-on:
+        required: false
+        type: string
+        default: '"ubuntu-latest"'
+        description: 'Runner labels as JSON, e.g. ["self-hosted","air"]; pass vars.CI_RUNNER'
 
 # Pins wrangler itself; npx has no lockfile, so its dependencies still resolve
 # at run time. Bump it in this one place.
@@ -78,7 +83,7 @@ env:
 jobs:
   deploy:
     name: Deploy to Cloudflare Pages
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(inputs.runs-on || '"ubuntu-latest"') }}
     permissions:
       id-token: write
       contents: read
