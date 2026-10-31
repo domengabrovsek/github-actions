@@ -57,7 +57,7 @@ Each job sets its own permissions, and the caller's grant is the ceiling. The ca
 
 ## Notes
 
-- The token lives in SSM in `eu-central-1`. The read step masks it in logs and passes it only to the Claude step (`.github/workflows/reviewer.yml:82-83`, `.github/workflows/reviewer.yml:224-233`). Storing and rotating it happens outside this repo.
+- The token lives in SSM in `eu-central-1`. The "Read the Claude token" step masks it in logs, and only the Claude step receives it, as `claude_code_oauth_token`. Storing and rotating it happens outside this repo.
 - Call it with `@main`, including from this repo. The `github-reviewer` role trusts only `reviewer.yml` at `refs/heads/main`, run from a repo listed in `cloud/reviewer-repos.json`, and only reads `/github-reviewer/claude_code_oauth_token`.
 - Claude checks each change against agent-config's `AGENTS.md` and `skills/review-pr/checklist.md` from `main`, plus the repo's own `AGENTS.md` or `CLAUDE.md`.
 - A `pull_request` run from a fork gets no OIDC token, so it cannot read the Claude token. Fork PRs get a review only when the owner adds the `safe-to-review` label, which starts a `pull_request_target` run. The `Review` job runs only when the label sender is the repo owner. The run checks out `main`, reads a diff pinned to the labeled commit, removes the label, and skips reply rounds. A clean review approves, as on same-repo PRs.
