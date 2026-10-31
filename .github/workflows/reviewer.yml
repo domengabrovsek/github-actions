@@ -129,7 +129,9 @@ jobs:
        github.event.label.name == 'safe-to-review' &&
        github.event.sender.login == github.repository_owner &&
        github.event.pull_request.head.repo.full_name != github.repository)
-    runs-on: ubuntu-latest
+    # A VM, not ubuntu-slim: Claude's bubblewrap sandbox needs user namespaces,
+    # which the unprivileged slim container lacks. arm64 is the cheapest VM.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:
       contents: read
@@ -405,7 +407,8 @@ jobs:
       github.event.comment.in_reply_to_id &&
       github.event.comment.user.login == github.repository_owner &&
       github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    # Same sandbox constraint as the review job.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     permissions:
       contents: read

@@ -35,6 +35,7 @@ jobs:
 | `output_directory` | `dist` | Directory wrangler uploads to Pages. |
 | `branch` | `''` | Deploy branch passed to wrangler (blank lets wrangler infer production vs preview). |
 | `node-version-file` | `.nvmrc` | File that pins the Node version. |
+| `runs-on` | `'"ubuntu-latest"'` | Runner labels as JSON, e.g. `'["self-hosted","air"]'`. Pass `${{ vars.CI_RUNNER }}`. Empty falls back to `ubuntu-latest`. |
 
 ## Notes
 
